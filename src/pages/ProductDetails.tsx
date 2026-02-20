@@ -332,20 +332,20 @@ const ProductDetails = () => {
                                                 e.preventDefault();
                                                 setActiveImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
                                             }}
-                                            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-white shadow-md flex items-center justify-center text-[#332D2D] opacity-0 group-hover:opacity-100 transition-all z-20 hover:scale-105"
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] border border-black/5 flex items-center justify-center text-[#332D2D] opacity-100 transition-all z-20 hover:scale-110"
                                             aria-label="Previous image"
                                         >
-                                            <ChevronLeft size={20} />
+                                            <ChevronLeft size={18} />
                                         </button>
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 setActiveImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
                                             }}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-white shadow-md flex items-center justify-center text-[#332D2D] opacity-0 group-hover:opacity-100 transition-all z-20 hover:scale-105"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] border border-black/5 flex items-center justify-center text-[#332D2D] opacity-100 transition-all z-20 hover:scale-110"
                                             aria-label="Next image"
                                         >
-                                            <ChevronRight size={20} />
+                                            <ChevronRight size={18} />
                                         </button>
                                     </>
                                 )}

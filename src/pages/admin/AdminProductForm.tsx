@@ -79,10 +79,35 @@ const AdminProductForm = () => {
                 status: product.status,
             });
         } else if (!isEditMode) {
-            const params = new URLSearchParams(window.location.search);
-            const preselectedCategory = params.get("category_id");
-            if (preselectedCategory) {
-                setFormData(prev => ({ ...prev, category_id: preselectedCategory }));
+            // Check for duplicate data first from route state
+            // we use (window.history.state?.usr?.duplicateData) because React Router
+            // puts the state in history state under .usr
+            const duplicateData = window.history.state?.usr?.duplicateData;
+
+            if (duplicateData) {
+                setFormData({
+                    name: duplicateData.name || "",
+                    sku: duplicateData.sku || "",
+                    category_id: duplicateData.category_id || "",
+                    price: duplicateData.price?.toString() || "",
+                    discountPrice: duplicateData.discount_price?.toString() || "",
+                    description: duplicateData.description || "",
+                    stock: duplicateData.stock_quantity?.toString() || "0",
+                    images: duplicateData.images || [],
+                    sizes: duplicateData.sizes || [],
+                    colors: duplicateData.colors || [],
+                    details: duplicateData.details || [],
+                    is_featured: !!duplicateData.is_featured,
+                    is_new: !!duplicateData.is_new,
+                    show_limited_stock: !!duplicateData.show_limited_stock,
+                    status: duplicateData.status || "Draft",
+                });
+            } else {
+                const params = new URLSearchParams(window.location.search);
+                const preselectedCategory = params.get("category_id");
+                if (preselectedCategory) {
+                    setFormData(prev => ({ ...prev, category_id: preselectedCategory }));
+                }
             }
         }
     }, [product, isEditMode]);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useProducts, useDeleteProduct, useAdminProducts, ProductWithCategory } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -16,7 +16,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Edit, Trash2, Package, Tag, Loader2 } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Package, Tag, Loader2, Copy } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabaseAdminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,7 @@ const TableSkeleton = () => (
 
 
 const AdminProducts = () => {
+    const navigate = useNavigate();
     const [page, setPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
     // Debounce search term would be ideal, but for now we'll pass it directly or wait for Enter (refinement later)
@@ -82,6 +83,25 @@ const AdminProducts = () => {
 
     const getCategoryName = (id: string) => {
         return categories.find(c => c.id === id)?.name || "Uncategorized";
+    };
+
+    const handleDuplicate = (product: ProductWithCategory) => {
+        // Exclude ids and set status to draft, append " - Copy" to name
+        const duplicateData = {
+            ...product,
+            name: `${product.name} - Copy`,
+            sku: `${product.sku}-COPY`,
+            status: "Draft",
+            slug: `${product.slug}-copy-${Math.floor(Math.random() * 1000)}`,
+        };
+
+        // Remove DB specific fields that shouldn't be copied
+        delete (duplicateData as any).id;
+        delete (duplicateData as any).created_at;
+        delete (duplicateData as any).updated_at;
+
+        // Navigate to new product page with state
+        navigate('/admin/products/new', { state: { duplicateData } });
     };
 
     return (
@@ -231,11 +251,21 @@ const AdminProducts = () => {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg shadow-sm border border-transparent hover:border-amber-100"
+                                                        onClick={() => handleDuplicate(product)}
+                                                        title="Duplicate Product"
+                                                    >
+                                                        <Copy size={16} />
+                                                    </Button>
                                                     <Link to={`/admin/products/edit/${product.id}`}>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
                                                             className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg shadow-sm border border-transparent hover:border-blue-100"
+                                                            title="Edit Product"
                                                         >
                                                             <Edit size={16} />
                                                         </Button>
@@ -245,6 +275,7 @@ const AdminProducts = () => {
                                                         size="icon"
                                                         className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg shadow-sm border border-transparent hover:border-red-100"
                                                         onClick={() => openDeleteDialog(product.id)}
+                                                        title="Delete Product"
                                                     >
                                                         <Trash2 size={16} />
                                                     </Button>
