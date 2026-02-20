@@ -311,23 +311,7 @@ const ProductDetails = () => {
                                     ))}
                                 </div>
 
-                                {/* Slider Arrows */}
-                                {images.length > 1 && (
-                                    <>
-                                        <button
-                                            onClick={() => scrollThumbnails('left')}
-                                            className="absolute left-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-luxury-gold opacity-70 hover:opacity-100 transition-opacity z-10 border border-luxury-gold/20"
-                                        >
-                                            <ChevronLeft size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => scrollThumbnails('right')}
-                                            className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-luxury-gold opacity-70 hover:opacity-100 transition-opacity z-10 border border-luxury-gold/20"
-                                        >
-                                            <ChevronRight size={18} />
-                                        </button>
-                                    </>
-                                )}
+
                             </div>
                         </div>
 
