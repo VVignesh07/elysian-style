@@ -15,6 +15,7 @@ export interface Category {
     status: 'Active' | 'Inactive';
     display_order: number;
     product_count: number;
+    parent_id?: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -27,6 +28,7 @@ export interface CreateCategoryInput {
     color?: string;
     status?: 'Active' | 'Inactive';
     display_order?: number;
+    parent_id?: string | null;
 }
 
 export interface UpdateCategoryInput extends Partial<CreateCategoryInput> {
@@ -41,8 +43,7 @@ export function useCategories(supabaseClient: SupabaseClient<Database> = default
             const { data, error } = await supabaseClient
                 .from('categories')
                 .select('*')
-                .order('display_order', { ascending: true })
-                .limit(20);
+                .order('display_order', { ascending: true });
 
             if (error) {
                 const isAbort = error.message?.includes('AbortError') || error.code === '20';
@@ -111,6 +112,7 @@ export function useCreateCategory(supabaseClient: SupabaseClient<Database> = def
                     color: input.color || '#3B82F6',
                     status: input.status || 'Active',
                     display_order: input.display_order || 0,
+                    parent_id: input.parent_id || null,
                 })
                 .select()
                 .single();

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useProducts } from "@/hooks/useProducts";
@@ -71,80 +71,163 @@ const FilterSidebar = ({
     allSizes,
     selectedSizes,
     toggleSize
-}: FilterSidebarProps) => (
-    <div className="space-y-12">
-        {/* Category Filter */}
-        {!category && filterType === "all" && (
-            <div className="space-y-4">
-                <h3 className="font-heading text-xs font-bold uppercase tracking-[0.3em] text-foreground/80 border-b border-border/60 pb-3">Category</h3>
-                <div className="flex flex-col gap-2.5 pt-2">
-                    <button
-                        onClick={() => setActiveCategoryId("All")}
-                        className={`text-left text-xs uppercase tracking-widest transition-all ${activeCategoryId === "All" ? "font-bold text-luxury-gold translate-x-1" : "text-muted-foreground hover:text-foreground hover:translate-x-1"}`}
-                    >
-                        All Collections
-                    </button>
-                    {categories.map(c => (
-                        <button
-                            key={c.id}
-                            onClick={() => setActiveCategoryId(c.id)}
-                            className={`text-left text-xs uppercase tracking-widest transition-all ${activeCategoryId === c.id ? "font-bold text-luxury-gold translate-x-1" : "text-muted-foreground hover:text-foreground hover:translate-x-1"}`}
-                        >
-                            {c.name}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        )}
+}: FilterSidebarProps) => {
+    const [expandedChildIds, setExpandedChildIds] = useState<Set<string>>(new Set());
 
-        {/* Colors */}
-        {allColors.length > 0 && (
-            <div className="space-y-4">
-                <h3 className="font-heading text-xs font-bold uppercase tracking-[0.3em] text-foreground/80 border-b border-border/60 pb-3">Colors</h3>
-                <div className="flex flex-wrap gap-2.5 pt-2">
-                    {allColors.map(color => (
-                        <button
-                            key={color}
-                            onClick={() => toggleColor(color)}
-                            className={`px-4 py-2 text-[10px] uppercase font-bold tracking-widest border transition-all rounded-md ${selectedColors.includes(color)
-                                ? "bg-luxury-gold text-white border-luxury-gold shadow-md"
-                                : "bg-white text-foreground/70 border-border/80 hover:border-luxury-gold hover:bg-[#F9F7F4]"
-                                }`}
-                        >
-                            {color}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        )}
+    const toggleChildExpand = (id: string) => {
+        setExpandedChildIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
 
-        {/* Sizes */}
-        {allSizes.length > 0 && (
-            <div className="space-y-4">
-                <h3 className="font-heading text-xs font-bold uppercase tracking-[0.3em] text-foreground/80 border-b border-border/60 pb-3">Sizes</h3>
-                <div className="flex flex-wrap gap-2.5 pt-2">
-                    {allSizes.map(size => (
+    return (
+        <div className="space-y-12">
+            {/* Category Filter */}
+            {/* Category Filter */}
+            {!category && filterType === "all" && (
+                <div className="space-y-6">
+                    <h3 className="font-heading text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40 border-b border-border/40 pb-3 mb-4">Collections</h3>
+                    <div className="flex flex-col gap-1">
                         <button
-                            key={size}
-                            onClick={() => toggleSize(size)}
-                            className={`min-w-[45px] h-10 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider border transition-all rounded-md px-3 ${selectedSizes.includes(size)
-                                ? "bg-luxury-gold text-white border-luxury-gold shadow-md"
-                                : "bg-white text-foreground/70 border-border/80 hover:border-luxury-gold hover:bg-[#F9F7F4]"
-                                }`}
+                            onClick={() => setActiveCategoryId("All")}
+                            className={`text-left text-[11px] uppercase tracking-[0.2em] py-2 px-3 transition-all rounded-md ${activeCategoryId === "All" ? "font-bold text-luxury-gold bg-luxury-gold/5" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
                         >
-                            {size}
+                            All Pieces
                         </button>
-                    ))}
+
+                        {/* Hierarchical Rendering - 3 Levels */}
+                        {categories
+                            .filter(c => !c.parent_id)
+                            .filter(c => {
+                                const name = c.name.toUpperCase();
+                                const hasChildren = categories.some(child => child.parent_id === c.id);
+                                return name === 'MEN' || name === 'WOMEN' || hasChildren;
+                            })
+                            .map(root => {
+                                const children = categories.filter(c => c.parent_id === root.id);
+                                const isActive = activeCategoryId === root.id;
+
+                                return (
+                                    <div key={root.id} className="space-y-1 mt-2">
+                                        {/* Level 1: MEN / WOMEN */}
+                                        <button
+                                            onClick={() => setActiveCategoryId(root.id)}
+                                            className={`w-full text-left text-[10px] uppercase font-bold tracking-[0.25em] py-2.5 px-3 transition-all rounded-md flex items-center justify-between group ${isActive ? "text-luxury-gold bg-luxury-gold/5" : "text-foreground/80 hover:bg-muted/50"}`}
+                                        >
+                                            {root.name}
+                                            <ChevronDown size={10} className={`text-luxury-gold/40 transition-transform ${isActive ? "" : "-rotate-90 group-hover:rotate-0"}`} />
+                                        </button>
+
+                                        {/* Level 2: Shirts / Pants */}
+                                        <div className="flex flex-col gap-0 ml-3 border-l border-luxury-gold/10">
+                                            {children.map(child => {
+                                                const grandchildren = categories.filter(c => c.parent_id === child.id);
+                                                const isChildActive = activeCategoryId === child.id;
+                                                const isGrandchildActive = grandchildren.some(gc => activeCategoryId === gc.id);
+
+                                                return (
+                                                    <div key={child.id}>
+                                                        <button
+                                                            onClick={() => {
+                                                                setActiveCategoryId(child.id);
+                                                                toggleChildExpand(child.id);
+                                                            }}
+                                                            className={`w-full text-left text-xs py-2 pl-4 pr-3 transition-all rounded-r-md border-l-2 flex items-center justify-between group/child ${isChildActive
+                                                                ? "font-bold text-luxury-gold bg-luxury-gold/5 border-luxury-gold"
+                                                                : isGrandchildActive
+                                                                    ? "font-semibold text-foreground/80 border-luxury-gold/30"
+                                                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border-transparent hover:border-luxury-gold/20"
+                                                                }`}
+                                                        >
+                                                            {child.name}
+                                                            {grandchildren.length > 0 && (
+                                                                <ChevronDown size={9} className={`text-luxury-gold/30 transition-transform ${(expandedChildIds.has(child.id) || isGrandchildActive || isChildActive) ? "" : "-rotate-90"}`} />
+                                                            )}
+                                                        </button>
+
+                                                        {/* Level 3: Casual Shirts, Jeans, etc. - toggle on click */}
+                                                        {grandchildren.length > 0 && (expandedChildIds.has(child.id) || isGrandchildActive || isChildActive) && (
+                                                            <div className="flex flex-col gap-0 ml-4 border-l border-luxury-gold/8">
+                                                                {grandchildren.map(gc => {
+                                                                    const isGcActive = activeCategoryId === gc.id;
+                                                                    return (
+                                                                        <button
+                                                                            key={gc.id}
+                                                                            onClick={() => setActiveCategoryId(gc.id)}
+                                                                            className={`text-left text-[11px] py-1.5 pl-3 pr-3 transition-all rounded-r-md border-l-2 ${isGcActive
+                                                                                ? "font-bold text-luxury-gold bg-luxury-gold/5 border-luxury-gold"
+                                                                                : "text-muted-foreground/80 hover:text-foreground hover:bg-muted/10 border-transparent hover:border-luxury-gold/15"
+                                                                                }`}
+                                                                        >
+                                                                            {gc.name}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                    </div>
                 </div>
-            </div>
-        )}
-    </div>
-);
+            )}
+
+            {/* Colors */}
+            {allColors.length > 0 && (
+                <div className="space-y-4">
+                    <h3 className="font-heading text-xs font-bold uppercase tracking-[0.3em] text-foreground/80 border-b border-border/60 pb-3">Colors</h3>
+                    <div className="flex flex-wrap gap-2.5 pt-2">
+                        {allColors.map(color => (
+                            <button
+                                key={color}
+                                onClick={() => toggleColor(color)}
+                                className={`px-4 py-2 text-[10px] uppercase font-bold tracking-widest border transition-all rounded-md ${selectedColors.includes(color)
+                                    ? "bg-luxury-gold text-white border-luxury-gold shadow-md"
+                                    : "bg-white text-foreground/70 border-border/80 hover:border-luxury-gold hover:bg-[#F9F7F4]"
+                                    }`}
+                            >
+                                {color}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Sizes */}
+            {allSizes.length > 0 && (
+                <div className="space-y-4">
+                    <h3 className="font-heading text-xs font-bold uppercase tracking-[0.3em] text-foreground/80 border-b border-border/60 pb-3">Sizes</h3>
+                    <div className="flex flex-wrap gap-2.5 pt-2">
+                        {allSizes.map(size => (
+                            <button
+                                key={size}
+                                onClick={() => toggleSize(size)}
+                                className={`min-w-[45px] h-10 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider border transition-all rounded-md px-3 ${selectedSizes.includes(size)
+                                    ? "bg-luxury-gold text-white border-luxury-gold shadow-md"
+                                    : "bg-white text-foreground/70 border-border/80 hover:border-luxury-gold hover:bg-[#F9F7F4]"
+                                    }`}
+                            >
+                                {size}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 const Shop = ({ category, filterType = "all" }: ShopProps) => {
     const { addToCart } = useCart();
     const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
     const location = useLocation();
+    const { categorySlug } = useParams<{ categorySlug?: string }>();
 
     // State for filters
     const [activeCategoryId, setActiveCategoryId] = useState<string>("All");
@@ -162,6 +245,7 @@ const Shop = ({ category, filterType = "all" }: ShopProps) => {
     const { data: products = [], isLoading: productsLoading } = useProducts({
         status: 'Active',
         category: activeCategoryId === "All" ? undefined : (activeCategoryId === "NONE" ? "00000000-0000-0000-0000-000000000000" : activeCategoryId),
+        include_subcategories: true, // We'll add this to the hook
         is_new: filterType === "new" ? true : undefined,
         colors: selectedColors.length > 0 ? selectedColors : undefined,
         sizes: selectedSizes.length > 0 ? selectedSizes : undefined,
@@ -173,42 +257,46 @@ const Shop = ({ category, filterType = "all" }: ShopProps) => {
 
     const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
-    // Map prop category (name/slug) to ID if needed, or read from URL query params
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const urlCategory = searchParams.get("category");
+        const categoryToUse = urlCategory || categorySlug || category;
 
-        // Priority: URL query param > prop
-        const categoryToUse = urlCategory || category;
+        // Reset filters only if they aren't already empty
+        if (filterType === "all" && !categoryToUse) {
+            if (activeCategoryId !== "All") setActiveCategoryId("All");
+            if (selectedColors.length > 0) setSelectedColors([]);
+            if (selectedSizes.length > 0) setSelectedSizes([]);
+        }
 
         if (categoryToUse && categories.length > 0) {
+            // Priority matching: slug > name
             const found = categories.find(c =>
-                c.name.toLowerCase() === categoryToUse.toLowerCase() ||
                 c.slug.toLowerCase() === categoryToUse.toLowerCase() ||
-                (categoryToUse.toLowerCase() === 'combos' && c.name.toLowerCase() === 'combo') ||
-                (categoryToUse.toLowerCase() === 'combo' && c.name.toLowerCase() === 'combos')
+                c.name.toLowerCase() === categoryToUse.toLowerCase()
             );
+
             if (found) {
                 if (found.id !== activeCategoryId) {
                     setActiveCategoryId(found.id);
                 }
             } else {
-                // If a category was requested but not found in DB, show nothing
-                if (activeCategoryId !== "NONE") {
+                // Specialized check for 'combos' vs 'combo'
+                const comboMatch = categoryToUse.toLowerCase() === 'combos' || categoryToUse.toLowerCase() === 'combo';
+                const comboCat = categories.find(c => c.name.toLowerCase() === 'combo' || c.name.toLowerCase() === 'combos');
+
+                if (comboMatch && comboCat) {
+                    setActiveCategoryId(comboCat.id);
+                } else if (activeCategoryId !== "NONE") {
                     setActiveCategoryId("NONE");
                 }
             }
-        } else if (!categoryToUse && activeCategoryId !== "All") {
+        } else if (!categoryToUse && activeCategoryId !== "All" && filterType === "all") {
             setActiveCategoryId("All");
         }
 
-        // Reset filters only if they aren't already empty
-        if (filterType === "all") {
-            if (selectedColors.length > 0) setSelectedColors([]);
-            if (selectedSizes.length > 0) setSelectedSizes([]);
-        }
         window.scrollTo(0, 0);
-    }, [category, categories, filterType, location.pathname, location.search]);
+    }, [category, categories, filterType, location.pathname, location.search, categorySlug]);
 
 
     // Derived Data: For facets, we still might want all products but let's use a fixed set for now

@@ -16,7 +16,17 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Edit, Trash2, Package, Tag, Loader2, Copy } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectSeparator,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Plus, Search, Edit, Trash2, Package, Tag, Loader2, Copy, Filter } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabaseAdminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -49,11 +59,18 @@ const AdminProducts = () => {
     // Debounce search term would be ideal, but for now we'll pass it directly or wait for Enter (refinement later)
 
     const pageSize = 20;
+    const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-    const { data: { products = [], totalCount = 0 } = {}, isLoading } = useAdminProducts(page, pageSize, searchTerm, undefined, supabaseAdmin);
+    const { data: { products = [], totalCount = 0 } = {}, isLoading } = useAdminProducts(
+        page,
+        pageSize,
+        searchTerm,
+        selectedCategory === "all" ? undefined : selectedCategory,
+        supabaseAdmin
+    );
 
     // We no longer need useProducts for all data
-    // const { data: products = [], isLoading } = useProducts(...) 
+    // const { data: products = [], isLoading } = useProducts(...)
 
     const { data: categories = [] } = useCategories(supabaseAdmin);
     const deleteProduct = useDeleteProduct(supabaseAdmin);
@@ -125,21 +142,77 @@ const AdminProducts = () => {
             <Card className="border-border/50 shadow-sm overflow-hidden bg-card/50 backdrop-blur-sm">
                 <CardHeader className="bg-muted/30 border-b">
                     <div className="flex flex-col sm:flex-row items-center gap-4">
-                        <div className="relative flex-1 w-full max-w-sm">
-                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Search products or SKU..."
-                                value={searchTerm}
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value);
-                                    setPage(0); // Reset to first page on search
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="relative flex-1 sm:w-64">
+                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search pieces..."
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                        setSearchTerm(e.target.value);
+                                        setPage(0);
+                                    }}
+                                    className="pl-9 h-10 bg-background/50 border-luxury-gold/20 focus-visible:ring-luxury-gold text-xs"
+                                />
+                            </div>
+
+                            <Select
+                                value={selectedCategory}
+                                onValueChange={(value) => {
+                                    setSelectedCategory(value);
+                                    setPage(0);
                                 }}
-                                className="pl-10 bg-background/50 border-luxury-gold/20 focus-visible:ring-luxury-gold"
-                            />
+                            >
+                                <SelectTrigger className="w-[160px] h-10 bg-background/50 border-luxury-gold/20 text-xs">
+                                    <div className="flex items-center gap-2">
+                                        <Filter size={14} className="text-luxury-gold/50" />
+                                        <SelectValue placeholder="All Lines" />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[400px]">
+                                    <SelectItem value="all">All Collections</SelectItem>
+                                    <SelectSeparator />
+
+                                    {/* Render all Root Categories and their children */}
+                                    {categories.filter(c => !c.parent_id)
+                                        .map(root => {
+                                            const children = categories.filter(c => c.parent_id === root.id);
+
+                                            // If it has children, render as a group
+                                            if (children.length > 0) {
+                                                return (
+                                                    <SelectGroup key={root.id}>
+                                                        <SelectLabel className="px-2 py-1.5 text-[10px] font-bold text-luxury-gold uppercase tracking-widest bg-luxury-gold/5">
+                                                            {root.name}
+                                                        </SelectLabel>
+                                                        {/* Root itself is selectable */}
+                                                        <SelectItem value={root.id} className="pl-4 italic">
+                                                            All {root.name}
+                                                        </SelectItem>
+                                                        {children.map(child => (
+                                                            <SelectItem key={child.id} value={child.id} className="pl-6">
+                                                                {child.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                        <SelectSeparator className="opacity-50" />
+                                                    </SelectGroup>
+                                                );
+                                            }
+
+                                            // If no children, render as a single item
+                                            return (
+                                                <SelectItem key={root.id} value={root.id}>
+                                                    {root.name}
+                                                </SelectItem>
+                                            );
+                                        })}
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground ml-auto bg-background/50 px-3 py-1.5 rounded-full border">
-                            <Tag size={14} className="text-luxury-gold" />
-                            <span>Total: <span className="font-bold text-foreground">{totalCount}</span> Products</span>
+
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground ml-auto bg-background/50 px-4 py-2 rounded-xl border border-border/40 uppercase tracking-widest shadow-inner">
+                            <Tag size={12} className="text-luxury-gold" />
+                            <span><span className="text-foreground">{totalCount}</span> Archive Records</span>
                         </div>
                     </div>
                 </CardHeader>

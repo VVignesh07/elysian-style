@@ -71,6 +71,7 @@ export interface ProductFilters {
     sort?: 'newest' | 'price-asc' | 'price-desc';
     limit?: number;
     offset?: number;
+    include_subcategories?: boolean;
 }
 
 // Fetch all products with optional filters
@@ -91,7 +92,35 @@ export function useProducts(
 
             // Apply filters
             if (filters?.category) {
-                query = query.eq('category_id', filters.category);
+                if (filters.include_subcategories) {
+                    // Optimized check: if the category is 'All', don't filter at all
+                    if (filters.category === "All") {
+                        // Skip filtering
+                    } else {
+                        // Fetch all descendant categories
+                        const { data: allCategories } = await supabaseClient
+                            .from('categories')
+                            .select('id, parent_id');
+
+                        if (allCategories && allCategories.length > 0) {
+                            const categories_typed = allCategories as { id: string; parent_id: string | null }[];
+                            const getDescendants = (parentId: string): string[] => {
+                                const children = categories_typed.filter(c => c.parent_id === parentId);
+                                let ids = [parentId];
+                                for (const child of children) {
+                                    ids = [...ids, ...getDescendants(child.id)];
+                                }
+                                return ids;
+                            };
+                            const categoryIds = getDescendants(filters.category);
+                            query = query.in('category_id', categoryIds);
+                        } else {
+                            query = query.eq('category_id', filters.category);
+                        }
+                    }
+                } else {
+                    query = query.eq('category_id', filters.category);
+                }
             }
             if (filters?.status) {
                 query = query.eq('status', filters.status);

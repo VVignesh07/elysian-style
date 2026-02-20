@@ -14,8 +14,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCategories } from "@/hooks/useCategories";
+import { supabaseAdmin } from "@/lib/supabaseAdminClient";
+import { cn } from "@/lib/utils";
 import AnnouncementBar from "./AnnouncementBar";
 import logo from "@/assets/zerofasions.in2.png";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -27,6 +31,29 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [activeMobileSubmenu, setActiveMobileSubmenu] = useState<string | null>(null);
+
+  const { data: categories = [] } = useCategories(supabaseAdmin);
+
+  // Build a flat id->node map first, then attach children
+  const catMap: Record<string, any> = {};
+  categories.forEach(cat => {
+    catMap[cat.id] = { ...cat, children: [] };
+  });
+  categories.forEach(cat => {
+    if (cat.parent_id && catMap[cat.parent_id]) {
+      catMap[cat.parent_id].children.push(catMap[cat.id]);
+    }
+  });
+
+  const rootCategories = Object.values(catMap)
+    .filter((c: any) => !c.parent_id)
+    .filter((c: any) => {
+      const name = c.name.toUpperCase();
+      const hasChildren = c.children && c.children.length > 0;
+      return name === 'MEN' || name === 'WOMEN' || hasChildren;
+    })
+    .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
 
   useEffect(() => {
     let lastScroll = window.scrollY;
@@ -81,11 +108,91 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* Left nav */}
+            {/* Dynamic Navigation */}
             <div className="hidden lg:flex items-center gap-8">
               <Link to="/new-in" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">New In</Link>
-              <Link to="/women" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Women</Link>
-              <Link to="/men" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Men</Link>
+
+              {rootCategories.map((root: any) => {
+                const hasChildren = root.children && root.children.length > 0;
+
+                if (!hasChildren) {
+                  return (
+                    <Link
+                      key={root.id}
+                      to={`/category/${root.slug}`}
+                      className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300"
+                    >
+                      {root.name}
+                    </Link>
+                  );
+                }
+
+                return (
+                  <DropdownMenu key={root.id}>
+                    <DropdownMenuTrigger className="flex items-center gap-1 text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300 outline-none">
+                      {root.name} <ChevronDown size={12} className="opacity-50" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className="bg-[#FAFAF8] border border-border/40 p-4 shadow-2xl rounded-xl"
+                      style={{ minWidth: `${Math.max(260, root.children.length * 170)}px` }}
+                    >
+                      {/* View All link */}
+                      <DropdownMenuItem
+                        onClick={() => navigate(`/category/${root.slug}`)}
+                        className="font-bold text-luxury-gold text-xs mb-3 pb-3 border-b border-border/40 focus:bg-luxury-gold/5 cursor-pointer"
+                      >
+                        View All {root.name}
+                      </DropdownMenuItem>
+
+                      {/* Multi-column layout: one column per child (Shirts, Pants) */}
+                      <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${root.children.length}, minmax(140px, 1fr))` }}>
+                        {root.children
+                          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+                          .map((sub: any) => {
+                            const subSub = categories.filter(c => c.parent_id === sub.id)
+                              .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+                            return (
+                              <div key={sub.id}>
+                                {/* Column header: Shirts / Pants */}
+                                <button
+                                  onClick={() => navigate(`/category/${sub.slug}`)}
+                                  className="text-[10px] font-bold text-foreground/50 uppercase tracking-[0.2em] border-b border-border/30 pb-2 mb-2 w-full text-left hover:text-foreground transition-colors"
+                                >
+                                  {sub.name}
+                                </button>
+
+                                {/* Sub-category list */}
+                                <div className="space-y-0.5">
+                                  {subSub.length > 0 ? (
+                                    subSub.map((gc: any) => (
+                                      <DropdownMenuItem
+                                        key={gc.id}
+                                        onClick={() => navigate(`/category/${gc.slug}`)}
+                                        className="text-foreground/70 hover:text-foreground hover:bg-foreground/5 text-[12px] py-1.5 px-2 rounded cursor-pointer whitespace-nowrap focus:bg-foreground/5"
+                                      >
+                                        {gc.name}
+                                      </DropdownMenuItem>
+                                    ))
+                                  ) : (
+                                    <DropdownMenuItem
+                                      onClick={() => navigate(`/category/${sub.slug}`)}
+                                      className="text-foreground/50 hover:text-foreground hover:bg-foreground/5 text-[11px] py-1 px-2 italic cursor-pointer focus:bg-foreground/5"
+                                    >
+                                      Shop {sub.name}
+                                    </DropdownMenuItem>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              })}
+
               <Link to="/combos" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Combos</Link>
               <Link to="/collections" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Collections</Link>
               <Link to="/our-story" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Our Story</Link>
@@ -242,22 +349,67 @@ const Navbar = () => {
                 >
                   New In
                 </Link>
-                <Link
-                  to="/women"
-                  className={`text-lg font-body text-luxury-spacing text-white/80 hover:text-white transition-all duration-300 transform ${mobileOpen ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"}`}
-                  style={{ transitionDelay: "150ms" }}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Women
-                </Link>
-                <Link
-                  to="/men"
-                  className={`text-lg font-body text-luxury-spacing text-white/80 hover:text-white transition-all duration-300 transform ${mobileOpen ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"}`}
-                  style={{ transitionDelay: "200ms" }}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Men
-                </Link>
+
+                {/* Dynamic Mobile Categories */}
+                {rootCategories.map((root: any, index: number) => {
+                  const hasChildren = root.children && root.children.length > 0;
+                  const menuKey = `mobile-${root.id}`;
+
+                  if (!hasChildren) {
+                    return (
+                      <Link
+                        key={root.id}
+                        to={`/category/${root.slug}`}
+                        className={`text-lg font-body text-luxury-spacing text-white/80 hover:text-white transition-all duration-300 transform ${mobileOpen ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"}`}
+                        style={{ transitionDelay: `${150 + index * 50}ms` }}
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        {root.name}
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <div key={root.id} className="space-y-4">
+                      <button
+                        onClick={() => setActiveMobileSubmenu(activeMobileSubmenu === menuKey ? null : menuKey)}
+                        className={`flex items-center justify-between w-full text-lg font-body text-luxury-spacing text-white/80 hover:text-white transition-all duration-300 transform ${mobileOpen ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"}`}
+                        style={{ transitionDelay: `${150 + index * 50}ms` }}
+                      >
+                        {root.name} <ChevronDown size={18} className={cn("transition-transform", activeMobileSubmenu === menuKey && "rotate-180")} />
+                      </button>
+                      {activeMobileSubmenu === menuKey && (
+                        <div className="flex flex-col gap-4 pl-4 border-l border-white/10 animate-in slide-in-from-top-2 duration-300">
+                          <Link to={`/category/${root.slug}`} onClick={() => setMobileOpen(false)} className="text-sm font-bold text-luxury-gold uppercase tracking-widest">
+                            View All {root.name}
+                          </Link>
+                          {root.children.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0)).map((sub: any) => {
+                            const subSub = categories.filter(c => c.parent_id === sub.id);
+                            if (subSub.length > 0) {
+                              return (
+                                <div key={sub.id} className="space-y-3">
+                                  <p className="text-[10px] items-center flex gap-2 font-bold text-white/30 uppercase tracking-[0.2em]">
+                                    {sub.name} <span className="h-[1px] flex-1 bg-white/5"></span>
+                                  </p>
+                                  {subSub.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0)).map(inner => (
+                                    <Link key={inner.id} to={`/category/${inner.slug}`} onClick={() => setMobileOpen(false)} className="text-sm text-white/60 hover:text-white block pl-2 tracking-widest">
+                                      {inner.name}
+                                    </Link>
+                                  ))}
+                                </div>
+                              );
+                            }
+                            return (
+                              <Link key={sub.id} to={`/category/${sub.slug}`} onClick={() => setMobileOpen(false)} className="text-sm text-white/60 hover:text-white tracking-widest">
+                                {sub.name}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 <Link
                   to="/combos"
                   className={`text-lg font-body text-luxury-spacing text-white/80 hover:text-white transition-all duration-300 transform ${mobileOpen ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"}`}

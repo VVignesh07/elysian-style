@@ -9,7 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
+    SelectLabel,
+    SelectSeparator,
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
@@ -513,10 +516,68 @@ const AdminProductForm = () => {
                                                 <SelectTrigger className="h-9 text-xs bg-muted/30">
                                                     <SelectValue placeholder="Select..." />
                                                 </SelectTrigger>
-                                                <SelectContent>
-                                                    {categories.map(category => (
-                                                        <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
-                                                    ))}
+                                                <SelectContent className="max-h-[400px]">
+                                                    {categories.filter(c => !c.parent_id).length === 0 ? (
+                                                        <div className="px-4 py-8 text-center text-muted-foreground italic text-xs">
+                                                            No categories found.
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {/* Level 1: Root collections (MEN, WOMEN) */}
+                                                            {categories
+                                                                .filter(c => !c.parent_id)
+                                                                .map(root => {
+                                                                    const children = categories.filter(c => c.parent_id === root.id);
+                                                                    if (children.length === 0) return null; // handled below in "Other"
+                                                                    return (
+                                                                        <SelectGroup key={root.id}>
+                                                                            <SelectLabel className="px-2 py-1.5 text-[10px] font-bold text-luxury-gold uppercase tracking-widest bg-luxury-gold/5 flex items-center justify-between">
+                                                                                {root.name}
+                                                                                <span className="text-[8px] font-normal opacity-50 uppercase">Collection</span>
+                                                                            </SelectLabel>
+                                                                            {/* "All MEN" selectable */}
+                                                                            <SelectItem value={root.id} className="pl-4 italic font-medium">
+                                                                                All {root.name}
+                                                                            </SelectItem>
+                                                                            {/* Level 2: Children (Shirts, Pants) */}
+                                                                            {children.map(child => {
+                                                                                const grandchildren = categories.filter(c => c.parent_id === child.id);
+                                                                                return (
+                                                                                    <SelectGroup key={child.id}>
+                                                                                        <SelectItem value={child.id} className="pl-6 font-semibold">
+                                                                                            {child.name}
+                                                                                        </SelectItem>
+                                                                                        {/* Level 3: Grandchildren (Casual Shirt, Formal Shirt...) */}
+                                                                                        {grandchildren.map(gc => (
+                                                                                            <SelectItem key={gc.id} value={gc.id} className="pl-10 text-muted-foreground text-xs">
+                                                                                                ↳ {gc.name}
+                                                                                            </SelectItem>
+                                                                                        ))}
+                                                                                    </SelectGroup>
+                                                                                );
+                                                                            })}
+                                                                            <SelectSeparator className="opacity-50" />
+                                                                        </SelectGroup>
+                                                                    );
+                                                                })}
+
+                                                            {/* Standalone root categories (no children) → "Other" */}
+                                                            {categories.filter(c => !c.parent_id && !categories.some(ch => ch.parent_id === c.id)).length > 0 && (
+                                                                <SelectGroup>
+                                                                    <SelectLabel className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/30">
+                                                                        Other
+                                                                    </SelectLabel>
+                                                                    {categories
+                                                                        .filter(c => !c.parent_id && !categories.some(ch => ch.parent_id === c.id))
+                                                                        .map(cat => (
+                                                                            <SelectItem key={cat.id} value={cat.id}>
+                                                                                {cat.name}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                </SelectGroup>
+                                                            )}
+                                                        </>
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         </div>

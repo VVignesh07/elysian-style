@@ -111,8 +111,10 @@ const App = () => (
 
                       {/* Shop Routes */}
                       <Route path="/shop" element={<Shop filterType="all" />} />
+                      <Route path="/shop/:categorySlug" element={<Shop />} />
                       <Route path="/men" element={<Shop category="Men" />} />
                       <Route path="/women" element={<Shop category="Women" />} />
+                      <Route path="/category/:categorySlug" element={<Shop />} />
                       <Route path="/new-in" element={<Shop filterType="new" />} />
                       <Route path="/collections" element={<Shop filterType="all" />} />
                       <Route path="/sale" element={<Shop filterType="sale" />} />

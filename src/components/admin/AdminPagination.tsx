@@ -9,6 +9,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
+import { cn } from "@/lib/utils";
 
 interface AdminPaginationProps {
     currentPage: number;
@@ -25,11 +26,19 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
 }) => {
     const totalPages = Math.ceil(totalCount / pageSize);
 
-    if (totalPages <= 1) return null;
+    // Don't show anything if there are no records at all
+    if (totalCount === 0) return null;
 
     const renderPageNumbers = () => {
         const pages = [];
         const maxVisiblePages = 5;
+
+        const getPageLinkClass = (isActive: boolean) => cn(
+            "h-8 w-8 text-xs font-medium transition-colors border-none",
+            isActive
+                ? "bg-[#EEF0FF] text-[#5551FF] hover:bg-[#EEF0FF] hover:text-[#5551FF]"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+        );
 
         if (totalPages <= maxVisiblePages) {
             for (let i = 0; i < totalPages; i++) {
@@ -41,10 +50,7 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
                                 onPageChange(i);
                             }}
                             isActive={currentPage === i}
-                            className={`cursor-pointer rounded-lg ${currentPage === i
-                                    ? "bg-luxury-gold text-white border-luxury-gold hover:bg-luxury-gold/90"
-                                    : "text-muted-foreground hover:bg-luxury-gold/5 hover:text-luxury-gold"
-                                }`}
+                            className={getPageLinkClass(currentPage === i)}
                         >
                             {i + 1}
                         </PaginationLink>
@@ -52,7 +58,6 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
                 );
             }
         } else {
-            // Logic for more than 5 pages with ellipses
             const startPage = Math.max(0, currentPage - 1);
             const endPage = Math.min(totalPages - 1, currentPage + 1);
 
@@ -65,10 +70,7 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
                             onPageChange(0);
                         }}
                         isActive={currentPage === 0}
-                        className={`cursor-pointer rounded-lg ${currentPage === 0
-                                ? "bg-luxury-gold text-white border-luxury-gold hover:bg-luxury-gold/90"
-                                : "text-muted-foreground hover:bg-luxury-gold/10 hover:text-luxury-gold"
-                            }`}
+                        className={getPageLinkClass(currentPage === 0)}
                     >
                         1
                     </PaginationLink>
@@ -78,7 +80,7 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
             if (startPage > 1) {
                 pages.push(
                     <PaginationItem key="ellipsis-1">
-                        <PaginationEllipsis />
+                        <PaginationEllipsis className="h-8 w-8 text-muted-foreground" />
                     </PaginationItem>
                 );
             }
@@ -93,10 +95,7 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
                                 onPageChange(i);
                             }}
                             isActive={currentPage === i}
-                            className={`cursor-pointer rounded-lg ${currentPage === i
-                                    ? "bg-luxury-gold text-white border-luxury-gold hover:bg-luxury-gold/90"
-                                    : "text-muted-foreground hover:bg-luxury-gold/10 hover:text-luxury-gold"
-                                }`}
+                            className={getPageLinkClass(currentPage === i)}
                         >
                             {i + 1}
                         </PaginationLink>
@@ -107,7 +106,7 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
             if (endPage < totalPages - 2) {
                 pages.push(
                     <PaginationItem key="ellipsis-2">
-                        <PaginationEllipsis />
+                        <PaginationEllipsis className="h-8 w-8 text-muted-foreground" />
                     </PaginationItem>
                 );
             }
@@ -121,10 +120,7 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
                             onPageChange(totalPages - 1);
                         }}
                         isActive={currentPage === totalPages - 1}
-                        className={`cursor-pointer rounded-lg ${currentPage === totalPages - 1
-                                ? "bg-luxury-gold text-white border-luxury-gold hover:bg-luxury-gold/90"
-                                : "text-muted-foreground hover:bg-luxury-gold/10 hover:text-luxury-gold"
-                            }`}
+                        className={getPageLinkClass(currentPage === totalPages - 1)}
                     >
                         {totalPages}
                     </PaginationLink>
@@ -136,39 +132,47 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
     };
 
     return (
-        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/40">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest order-2 sm:order-1">
                 Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, totalCount)} of {totalCount} records
             </p>
-            <Pagination className="order-1 sm:order-2 w-auto mx-0">
-                <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious
-                            onClick={(e) => {
-                                e.preventDefault();
-                                if (currentPage > 0) onPageChange(currentPage - 1);
-                            }}
-                            className={`cursor-pointer rounded-lg ${currentPage === 0
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : "hover:bg-luxury-gold/10 hover:text-luxury-gold"
-                                }`}
-                        />
-                    </PaginationItem>
-                    {renderPageNumbers()}
-                    <PaginationItem>
-                        <PaginationNext
-                            onClick={(e) => {
-                                e.preventDefault();
-                                if (currentPage < totalPages - 1) onPageChange(currentPage + 1);
-                            }}
-                            className={`cursor-pointer rounded-lg ${currentPage === totalPages - 1
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : "hover:bg-luxury-gold/10 hover:text-luxury-gold"
-                                }`}
-                        />
-                    </PaginationItem>
-                </PaginationContent>
-            </Pagination>
+            {totalPages > 1 && (
+                <Pagination className="order-1 sm:order-2 w-auto mx-0">
+                    <PaginationContent className="gap-1">
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (currentPage > 0) onPageChange(currentPage - 1);
+                                }}
+                                className={cn(
+                                    "h-8 w-8 p-0 flex items-center justify-center border-none transition-colors",
+                                    currentPage === 0
+                                        ? "opacity-30 cursor-not-allowed"
+                                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                )}
+                            />
+                        </PaginationItem>
+
+                        {renderPageNumbers()}
+
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (currentPage < totalPages - 1) onPageChange(currentPage + 1);
+                                }}
+                                className={cn(
+                                    "h-8 w-8 p-0 flex items-center justify-center border-none transition-colors",
+                                    currentPage === totalPages - 1
+                                        ? "opacity-30 cursor-not-allowed"
+                                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                )}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
         </div>
     );
 };
