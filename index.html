@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://res.cloudinary.com">
+  <link rel="dns-prefetch" href="https://res.cloudinary.com">
+  <link rel="preconnect" href="https://api.cloudinary.com">
+  <link rel="preconnect" href="https://hkhvloowxghpmnbwvjcz.supabase.co">
+
+  <!-- Preload critical font for LCP -->
+  <link rel="preload"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap"
+    as="style">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/png" href="/favicon.png?v=2" />
+  <link rel="shortcut icon" href="/favicon.png?v=2" />
+  <link rel="apple-touch-icon" href="/favicon.png?v=2" />
+  <title>ZERO FASHION — Premium Fashion</title>
+  <meta name="description"
+    content="Zero Fashion: Premium apparel for men and women. Zero compromises on style, maximum focus on elegance." />
+  <meta name="author" content="Zero Fashion" />
+
+  <!-- TODO: Update og:title to match your application name -->
+  <meta property="og:title" content="Zero Fashion" />
+  <meta property="og:description" content="Premium fashion for the modern individual." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@Lovable" />
+  <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+  <style>
+    #initial-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loader-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      letter-spacing: 0.3em;
+      color: #1a1a1a;
+      margin-bottom: 1.5rem;
+      animation: pulse 2s infinite ease-in-out;
+      text-transform: uppercase;
+    }
+
+    .loader-bar-container {
+      width: 150px;
+      height: 1px;
+      background: #f0f0f0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loader-bar {
+      width: 100%;
+      height: 100%;
+      background: #C5A059;
+      position: absolute;
+      left: -100%;
+      animation: load 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.4;
+        transform: scale(0.98);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes load {
+      0% {
+        left: -100%;
+      }
+
+      50% {
+        left: 0;
+      }
+
+      100% {
+        left: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root">
+    <!-- Initial Splash Screen -->
+    <div id="initial-loader">
+      <div class="loader-logo">ZERO FASHION</div>
+      <div class="loader-bar-container">
+        <div class="loader-bar"></div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

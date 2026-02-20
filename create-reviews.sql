@@ -1,0 +1,38 @@
+ÿþ-- =====================================================
+-- REVIEWS TABLE SETUP
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+  user_name TEXT NOT NULL,
+  user_email TEXT,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public Read Reviews" ON public.reviews;
+CREATE POLICY "Public Read Reviews" ON public.reviews FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can submit reviews" ON public.reviews;
+CREATE POLICY "Anyone can submit reviews" ON public.reviews FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin Manage Reviews" ON public.reviews;
+CREATE POLICY "Admin Manage Reviews" ON public.reviews FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM public.user_roles 
+    WHERE user_id = auth.uid(AND role = 'admin'
+  )
+);
+
+-- Trigger for updated_at
+DROP TRIGGER IF EXISTS tr_update_reviews_updated_at ON public.reviews;
+CREATE TRIGGER tr_update_reviews_updated_at 
+BEFORE UPDATE ON public.reviews 
+FOR EACH ROW 
+EXECUTE FUNCTION update_updated_at_column();
