@@ -288,6 +288,32 @@ const ProductDetails = () => {
                                         </span>
                                     )}
                                 </div>
+
+                                {/* Slider Arrows for Main Image */}
+                                {images.length > 1 && (
+                                    <>
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                setActiveImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+                                            }}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center text-[#332D2D] opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-white hover:text-luxury-gold"
+                                            aria-label="Previous image"
+                                        >
+                                            <ChevronLeft size={20} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                setActiveImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+                                            }}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center text-[#332D2D] opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-white hover:text-luxury-gold"
+                                            aria-label="Next image"
+                                        >
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    </>
+                                )}
                             </div>
                             <div className="relative group/gallery">
                                 <div
