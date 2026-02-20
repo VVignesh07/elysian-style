@@ -77,6 +77,36 @@ const ProductDetails = () => {
     const [activeImage, setActiveImage] = useState(0);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    // Minimum swipe distance (in px)
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null); // otherwise the swipe is fired even with usual touch events
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEndHandler = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe && images.length > 1) {
+            // next image
+            setActiveImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+        } else if (isRightSwipe && images.length > 1) {
+            // prev image
+            setActiveImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+        }
+    };
 
     // Reset state when product changes
     useEffect(() => {
@@ -268,13 +298,18 @@ const ProductDetails = () => {
                     <div className="grid lg:grid-cols-12 gap-12 xl:gap-20">
                         {/* Left - Image Gallery */}
                         <div className="lg:col-span-7 flex flex-col gap-6">
-                            <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted shadow-lg">
+                            <div
+                                className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted shadow-lg group/main cursor-grab active:cursor-grabbing"
+                                onTouchStart={onTouchStart}
+                                onTouchMove={onTouchMove}
+                                onTouchEnd={onTouchEndHandler}
+                            >
                                 <OptimizedImage
                                     src={images[activeImage]}
                                     alt={product.name}
                                     width={1200}
                                     priority={true}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover transition-transform duration-300"
                                 />
                                 <div className="absolute top-6 left-0 flex flex-col gap-3 z-20 items-start">
                                     {product.is_new && (
