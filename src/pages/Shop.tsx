@@ -39,6 +39,7 @@ import { Product as DBProduct } from "@/hooks/useProducts";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { Skeleton } from "@/components/ui/skeleton";
 import SEO from "@/components/SEO";
+import { ColorSwatch } from "@/components/ui/ColorSwatch";
 
 interface ShopProps {
     category?: string;
@@ -182,19 +183,26 @@ const FilterSidebar = ({
             {allColors.length > 0 && (
                 <div className="space-y-4">
                     <h3 className="font-heading text-xs font-bold uppercase tracking-[0.3em] text-foreground/80 border-b border-border/60 pb-3">Colors</h3>
-                    <div className="flex flex-wrap gap-2.5 pt-2">
-                        {allColors.map(color => (
-                            <button
-                                key={color}
-                                onClick={() => toggleColor(color)}
-                                className={`px-4 py-2 text-[10px] uppercase font-bold tracking-widest border transition-all rounded-md ${selectedColors.includes(color)
-                                    ? "bg-luxury-gold text-white border-luxury-gold shadow-md"
-                                    : "bg-white text-foreground/70 border-border/80 hover:border-luxury-gold hover:bg-[#F9F7F4]"
-                                    }`}
-                            >
-                                {color}
-                            </button>
-                        ))}
+                    <div className="flex flex-wrap gap-3 pt-2">
+                        {allColors.map(color => {
+                            const isSelected = selectedColors.includes(color);
+                            return (
+                                <button
+                                    key={color}
+                                    onClick={() => toggleColor(color)}
+                                    className="group relative flex items-center justify-center p-0.5"
+                                    title={color}
+                                >
+                                    <div className={`absolute -inset-0.5 rounded-lg border-2 transition-all duration-300 ${isSelected ? "border-luxury-gold scale-100 opacity-100" : "border-transparent scale-50 opacity-0 group-hover:border-border/60 group-hover:scale-100 group-hover:opacity-100"}`} />
+                                    <ColorSwatch
+                                        color={color}
+                                        size="md"
+                                        className="rounded-md shadow-sm w-6 h-6 border border-black/10 transition-transform duration-300 group-hover:scale-95"
+                                    />
+                                    <span className="sr-only">{color}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -299,9 +307,38 @@ const Shop = ({ category, filterType = "all" }: ShopProps) => {
     }, [category, categories, filterType, location.pathname, location.search, categorySlug]);
 
 
-    // Derived Data: For facets, we still might want all products but let's use a fixed set for now
-    const allColors = useMemo(() => ["Black", "White", "Navy", "Red", "Blue", "Green", "Beige", "Grey", "Pink", "Purple"], []);
-    const allSizes = useMemo(() => ["XS", "S", "M", "L", "XL", "XXL", "3XL"], []);
+    const [allColors, setAllColors] = useState<string[]>([]);
+    const [allSizes, setAllSizes] = useState<string[]>([]);
+
+    useEffect(() => {
+        const fetchFacets = async () => {
+            const { supabase } = await import('@/lib/supabase');
+
+            let query = supabase.from('products').select('colors, sizes').eq('status', 'Active');
+
+            // Note: A truly perfect facet query would handle full subcategory expansion, 
+            // but this is an acceptable approximation for the shop sidebar.
+            if (activeCategoryId !== "All" && activeCategoryId !== "NONE") {
+                query = query.eq('category_id', activeCategoryId);
+            }
+
+            const { data } = await query;
+            if (data) {
+                const colors = new Set<string>();
+                const sizes = new Set<string>();
+                data.forEach(p => {
+                    if (p.colors && Array.isArray(p.colors)) p.colors.forEach((c: string) => colors.add(c));
+                    if (p.sizes && Array.isArray(p.sizes)) p.sizes.forEach((s: string) => sizes.add(s));
+                });
+                setAllColors(Array.from(colors));
+
+                // Sort sizes logically
+                const sortOrder: Record<string, number> = { "XS": 1, "S": 2, "M": 3, "L": 4, "XL": 5, "XXL": 6, "3XL": 7 };
+                setAllSizes(Array.from(sizes).sort((a, b) => (sortOrder[a] || 99) - (sortOrder[b] || 99)));
+            }
+        };
+        fetchFacets();
+    }, [activeCategoryId]);
 
     // Use products directly from hook since they are already filtered and sorted server-side
     const paginatedProducts = products;

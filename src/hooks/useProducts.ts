@@ -132,10 +132,10 @@ export function useProducts(
                 query = query.eq('is_new', filters.is_new);
             }
             if (filters?.colors && filters.colors.length > 0) {
-                query = query.contains('colors', filters.colors);
+                query = query.overlaps('colors', filters.colors);
             }
             if (filters?.sizes && filters.sizes.length > 0) {
-                query = query.contains('sizes', filters.sizes);
+                query = query.overlaps('sizes', filters.sizes);
             }
             if (filters?.search) {
                 query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);

@@ -70,6 +70,15 @@ const NotificationPanel = () => {
                 queryClient.setQueryData(['admin-notifications'], (old: any) => [payload.new, ...(old || [])]);
 
                 if (payload.new.type === 'new_order') {
+                    // Play notification sound
+                    try {
+                        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                        audio.volume = 0.7; // 70% volume
+                        audio.play().catch(e => console.log('Audio playback blocked by browser:', e));
+                    } catch (err) {
+                        console.error('Failed to play sound', err);
+                    }
+
                     toast.success("New Order Received!", {
                         description: payload.new.message,
                         icon: <Package className="text-luxury-gold" />,
