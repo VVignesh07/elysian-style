@@ -51,17 +51,17 @@ export function ColorSwatch({ color, size = 'sm', showLabel = false, className }
     const isMulti = color === "Multi";
 
     return (
-        <div className={cn("inline-flex items-center gap-1.5", className)}>
+        <div className="inline-flex items-center gap-1.5" title={color}>
             <div
                 className={cn(
                     "rounded-md border border-black/10 shadow-sm",
-                    sizeClasses[size]
+                    sizeClasses[size],
+                    className
                 )}
                 style={{
                     background: isMulti ? bgColor : (bgColor.startsWith('linear-gradient') ? bgColor : undefined),
                     backgroundColor: (!isMulti && !bgColor.startsWith('linear-gradient')) ? bgColor : undefined
                 }}
-                title={color}
             />
             {showLabel && <span className="text-xs">{color}</span>}
         </div>

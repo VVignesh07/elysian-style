@@ -190,14 +190,13 @@ const FilterSidebar = ({
                                 <button
                                     key={color}
                                     onClick={() => toggleColor(color)}
-                                    className="group relative flex items-center justify-center p-0.5"
+                                    className="group relative flex items-center justify-center m-1"
                                     title={color}
                                 >
-                                    <div className={`absolute -inset-0.5 rounded-lg border-2 transition-all duration-300 ${isSelected ? "border-luxury-gold scale-100 opacity-100" : "border-transparent scale-50 opacity-0 group-hover:border-border/60 group-hover:scale-100 group-hover:opacity-100"}`} />
+                                    <div className={`absolute -inset-1 rounded-md border-2 transition-all duration-300 ${isSelected ? "border-luxury-gold scale-100 opacity-100" : "border-transparent scale-75 opacity-0 group-hover:border-border/60 group-hover:scale-100 group-hover:opacity-100"}`} />
                                     <ColorSwatch
                                         color={color}
-                                        size="lg"
-                                        className="rounded-md shadow-sm w-7 h-7 md:w-8 md:h-8 border border-black/10 transition-transform duration-300 group-hover:scale-95"
+                                        className="!w-8 !h-8 !rounded-md shadow-sm border border-black/15 transition-transform duration-300 group-hover:scale-95 relative z-10"
                                     />
                                     <span className="sr-only">{color}</span>
                                 </button>
