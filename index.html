@@ -107,24 +107,6 @@
       }
     }
   </style>
-  <script>
-    // Asset load error handling - helps with network changes and new deployments
-    window.addEventListener('error', function (e) {
-      if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
-        const url = e.target.src || e.target.href;
-        if (url && url.includes('/assets/')) {
-          console.warn('Asset failed to load, reloading page:', url);
-          // Only reload if we haven't reloaded in the last 10 seconds to avoid loops
-          const lastReload = sessionStorage.getItem('last-reload');
-          const now = Date.now();
-          if (!lastReload || (now - parseInt(lastReload)) > 10000) {
-            sessionStorage.setItem('last-reload', now.toString());
-            window.location.reload();
-          }
-        }
-      }
-    }, true);
-  </script>
 </head>
 
 <body>
