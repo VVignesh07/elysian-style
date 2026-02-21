@@ -196,8 +196,8 @@ const FilterSidebar = ({
                                     <div className={`absolute -inset-0.5 rounded-lg border-2 transition-all duration-300 ${isSelected ? "border-luxury-gold scale-100 opacity-100" : "border-transparent scale-50 opacity-0 group-hover:border-border/60 group-hover:scale-100 group-hover:opacity-100"}`} />
                                     <ColorSwatch
                                         color={color}
-                                        size="md"
-                                        className="rounded-md shadow-sm w-6 h-6 border border-black/10 transition-transform duration-300 group-hover:scale-95"
+                                        size="lg"
+                                        className="rounded-md shadow-sm w-7 h-7 md:w-8 md:h-8 border border-black/10 transition-transform duration-300 group-hover:scale-95"
                                     />
                                     <span className="sr-only">{color}</span>
                                 </button>
