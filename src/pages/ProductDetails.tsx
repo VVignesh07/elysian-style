@@ -70,7 +70,11 @@ const ProductDetails = () => {
         status: 'Active',
         is_featured: true
     });
-    const relatedProducts = relatedProductsData.slice(0, 8);
+
+    const relatedProducts = useMemo(() => {
+        if (!relatedProductsData || !id) return [];
+        return relatedProductsData.filter(p => p.id !== id).slice(0, 8);
+    }, [relatedProductsData, id]);
 
     // State
     const [quantity, setQuantity] = useState(1);
@@ -579,7 +583,7 @@ const ProductDetails = () => {
 
                                     <button
                                         onClick={handleBuyNow}
-                                        className="w-full bg-[#332D2D] text-white flex items-center justify-center gap-3 h-16 sm:h-[70px] rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg hover:bg-black transition-all"
+                                        className="w-full bg-[#1A1A1A] text-white flex items-center justify-center gap-3 h-14 sm:h-[70px] rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg hover:bg-black transition-all active:scale-[0.98]"
                                     >
                                         <ChevronRight size={22} className="shrink-0" />
                                         Buy It Now

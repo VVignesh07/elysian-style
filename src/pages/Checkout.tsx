@@ -107,7 +107,6 @@ const Checkout = () => {
 
         setIsProcessing(true);
         try {
-            console.log("🔍 Validating coupon:", cleanedCode);
             // 1. Fetch coupon from database
             const { data: coupon, error } = await supabase
                 .from('coupons')
@@ -117,7 +116,6 @@ const Checkout = () => {
                 .single();
 
             if (error || !coupon) {
-                console.log("❌ Coupon not found or inactive:", cleanedCode);
                 toast.error("Invalid or inactive coupon code");
                 setDiscount(0);
                 setCouponId(null);
@@ -644,12 +642,12 @@ const Checkout = () => {
                                     <button
                                         type="submit"
                                         disabled={isProcessing}
-                                        className="w-full luxury-btn-primary h-14 font-medium text-lg flex items-center justify-center gap-2 mt-8 tracking-[0.2em] uppercase"
+                                        className="w-full luxury-btn-primary h-14 sm:h-16 font-medium text-base sm:text-lg flex items-center justify-center gap-2 mt-8 tracking-[0.2em] uppercase active:scale-[0.98] transition-transform"
                                     >
                                         {isProcessing ? (
                                             <>
                                                 <Loader2 size={16} className="mr-2 animate-spin" />
-                                                Processing Order...
+                                                Processing...
                                             </>
                                         ) : (
                                             <>

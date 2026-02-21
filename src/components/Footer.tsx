@@ -10,7 +10,7 @@ const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground py-16">
       <div className="container mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 mb-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 mb-14">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <img
@@ -83,7 +83,7 @@ const Footer = () => {
             <p className="text-[10px] uppercase tracking-[0.2em] text-primary-foreground/40 mb-2">
               Designed & Developed by
             </p>
-            <span className="text-lg font-semibold tracking-wide bg-gradient-to-r from-luxury-gold via-white to-luxury-gold bg-clip-text text-transparent">
+            <span className="text-sm sm:text-lg font-semibold tracking-wide bg-gradient-to-r from-luxury-gold via-white to-luxury-gold bg-clip-text text-transparent text-center px-4">
               Arun & Vicky duo bro's brand
             </span>
           </div>

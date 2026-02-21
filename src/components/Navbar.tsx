@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, ShoppingBag, Heart, User, Menu, X } from "lucide-react";
@@ -35,25 +35,27 @@ const Navbar = () => {
 
   const { data: categories = [] } = useCategories(supabaseAdmin);
 
-  // Build a flat id->node map first, then attach children
-  const catMap: Record<string, any> = {};
-  categories.forEach(cat => {
-    catMap[cat.id] = { ...cat, children: [] };
-  });
-  categories.forEach(cat => {
-    if (cat.parent_id && catMap[cat.parent_id]) {
-      catMap[cat.parent_id].children.push(catMap[cat.id]);
-    }
-  });
+  const rootCategories = useMemo(() => {
+    // Build a flat id->node map first, then attach children
+    const catMap: Record<string, any> = {};
+    categories.forEach(cat => {
+      catMap[cat.id] = { ...cat, children: [] };
+    });
+    categories.forEach(cat => {
+      if (cat.parent_id && catMap[cat.parent_id]) {
+        catMap[cat.parent_id].children.push(catMap[cat.id]);
+      }
+    });
 
-  const rootCategories = Object.values(catMap)
-    .filter((c: any) => !c.parent_id)
-    .filter((c: any) => {
-      const name = c.name.toUpperCase();
-      const hasChildren = c.children && c.children.length > 0;
-      return name === 'MEN' || name === 'WOMEN' || hasChildren;
-    })
-    .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+    return Object.values(catMap)
+      .filter((c: any) => !c.parent_id)
+      .filter((c: any) => {
+        const name = c.name.toUpperCase();
+        const hasChildren = c.children && c.children.length > 0;
+        return name === 'MEN' || name === 'WOMEN' || hasChildren;
+      })
+      .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+  }, [categories]);
 
   useEffect(() => {
     let lastScroll = window.scrollY;
