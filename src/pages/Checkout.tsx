@@ -200,8 +200,8 @@ const Checkout = () => {
     const paymentMethod = form.watch("paymentMethod");
     const isCodAllowed = ALLOWED_COD_PINCODES.includes(postalCode);
 
-    // Shipping logic: COD is 50, UPI is 0
-    const shippingFee = paymentMethod === 'cod' ? 50 : 0;
+    // Shipping logic: Free above 999, else 50
+    const shippingFee = cartTotal > 999 ? 0 : 50;
     const finalTotal = cartTotal - discount + shippingFee;
 
     useEffect(() => {
@@ -716,11 +716,11 @@ const Checkout = () => {
                                     <div className="mt-2 p-2 bg-background rounded border border-border/40 text-[10px] space-y-1">
                                         <div className="flex items-center gap-1.5 text-foreground/80">
                                             <span className="text-green-600">✨</span>
-                                            <span>Enjoy <strong>FREE Shipping</strong> on all UPI / Prepaid Orders</span>
+                                            <span>Enjoy <strong>FREE Shipping</strong> on orders above ₹999</span>
                                         </div>
                                         <div className="flex items-center gap-1.5 text-foreground/80">
                                             <span>🚚</span>
-                                            <span>Cash on Delivery Available (+₹50)</span>
+                                            <span>Standard Shipping: ₹50 (orders below ₹1,000)</span>
                                         </div>
                                     </div>
                                     {discount > 0 && (
