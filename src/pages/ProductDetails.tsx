@@ -451,7 +451,7 @@ const ProductDetails = () => {
 
                                 <div className="flex items-center gap-2.5 mb-8 text-[11px] sm:text-xs text-green-800 bg-green-50 py-2 px-3.5 rounded-lg w-fit border border-green-200/80 font-medium">
                                     <span className="leading-none text-sm">✨</span>
-                                    <span><strong>Free Shipping</strong> on UPI Payment / Pre Order</span>
+                                    <span><strong>Free Shipping</strong> on UPI / Pre Orders Above ₹999</span>
                                 </div>
 
                                 <p className="text-base text-muted-foreground leading-relaxed mb-10">

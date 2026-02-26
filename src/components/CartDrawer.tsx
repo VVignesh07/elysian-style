@@ -133,7 +133,7 @@ const CartDrawer = () => {
                                 <div className="mt-2 p-2 bg-muted/30 rounded border border-border/40 text-[10px] space-y-1">
                                     <div className="flex items-center gap-1.5 text-foreground/80">
                                         <span className="text-green-600">✨</span>
-                                        <span>Enjoy <strong>FREE Shipping</strong> on all UPI / Prepaid Orders</span>
+                                        <span>Enjoy <strong>FREE Shipping</strong> on UPI / Prepaid Orders Above ₹999</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-foreground/80">
                                         <span>🚚</span>
