@@ -22,24 +22,17 @@ interface Order {
 import React, { useMemo } from "react";
 
 const AdminDashboard = () => {
-    // Fetch counts and revenue aggregate
+    // Fetch counts and revenue aggregate via optimized RPC
     const { data: dashboardStats, isLoading: loadingStats } = useQuery({
         queryKey: ['admin-dashboard-stats'],
         queryFn: async () => {
-            const [pCount, cCount, oCount, revData] = await Promise.all([
-                supabaseAdmin.from('products').select('*', { count: 'exact', head: true }),
-                supabaseAdmin.from('categories').select('*', { count: 'exact', head: true }),
-                supabaseAdmin.from('orders').select('*', { count: 'exact', head: true }),
-                supabaseAdmin.from('orders').select('total_amount').neq('status', 'Cancelled')
-            ]);
-
-            const totalRevenue = (revData.data as { total_amount: number }[] | null)?.reduce((acc, curr) => acc + Number(curr.total_amount), 0) || 0;
-
-            return {
-                productsCount: pCount.count || 0,
-                categoriesCount: cCount.count || 0,
-                ordersCount: oCount.count || 0,
-                totalRevenue
+            const { data, error } = await supabaseAdmin.rpc('get_admin_dashboard_stats');
+            if (error) throw error;
+            return data as {
+                productsCount: number;
+                categoriesCount: number;
+                ordersCount: number;
+                totalRevenue: number;
             };
         },
         staleTime: 1000 * 60 * 5 // 5 minute stale time

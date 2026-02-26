@@ -45,11 +45,18 @@ const AdminAnalytics = () => {
             const { data, error } = await supabaseAdmin
                 .from('orders')
                 .select(`
-          *,
-          order_items (
-            *
-          )
-        `)
+                    id,
+                    created_at,
+                    total_amount,
+                    status,
+                    customer_name,
+                    order_items (
+                        id,
+                        product_name,
+                        price,
+                        quantity
+                    )
+                `)
                 .gte('created_at', subDays(new Date(), timeRange).toISOString())
                 .order('created_at', { ascending: true });
 
