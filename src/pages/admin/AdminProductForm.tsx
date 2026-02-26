@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import imageCompression from 'browser-image-compression';
 import { useNavigate, useParams } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,6 +41,7 @@ const AdminProductForm = () => {
     const [slugError, setSlugError] = useState("");
     const [isValidating, setIsValidating] = useState(false);
     const [isCheckingSku, setIsCheckingSku] = useState(false);
+    const [isProcessingImages, setIsProcessingImages] = useState(false);
 
     const initialFormState = {
         name: "",
@@ -129,16 +131,46 @@ const AdminProductForm = () => {
         setFormData(prev => ({ ...prev, details: prev.details.filter((_, i) => i !== index) }));
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files && files.length > 0) {
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setFormData(prev => ({ ...prev, images: [...prev.images, reader.result as string] }));
-                };
-                reader.readAsDataURL(file);
-            });
+            setIsProcessingImages(true);
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1200,
+                useWebWorker: true,
+                initialQuality: 0.7
+            };
+
+            try {
+                const uploadPromises = Array.from(files).map(async (file) => {
+                    try {
+                        const compressedFile = await imageCompression(file, options);
+                        return new Promise<string>((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result as string);
+                            reader.readAsDataURL(compressedFile);
+                        });
+                    } catch (err) {
+                        console.error("Compression failed for file:", file.name, err);
+                        // Fallback to original if compression fails
+                        return new Promise<string>((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result as string);
+                            reader.readAsDataURL(file);
+                        });
+                    }
+                });
+
+                const base64Images = await Promise.all(uploadPromises);
+                setFormData(prev => ({ ...prev, images: [...prev.images, ...base64Images] }));
+                toast.success(`Processed ${base64Images.length} images`);
+            } catch (error) {
+                console.error("Error processing images:", error);
+                toast.error("Failed to process images");
+            } finally {
+                setIsProcessingImages(false);
+            }
         }
         e.target.value = '';
     };
@@ -288,7 +320,7 @@ const AdminProductForm = () => {
         );
     }
 
-    const isPending = createProduct.isPending || updateProduct.isPending || isValidating;
+    const isPending = createProduct.isPending || updateProduct.isPending || isValidating || isProcessingImages;
 
     return (
         <AdminLayout>
@@ -357,7 +389,7 @@ const AdminProductForm = () => {
                                 <Save size={14} />
                             )}
                             <span className="font-bold text-[10px] uppercase tracking-widest">
-                                {isValidating ? "Validating..." : (isEditMode ? "Save Changes" : "Publish")}
+                                {isProcessingImages ? "Processing..." : (isValidating ? "Validating..." : (isEditMode ? "Save Changes" : "Publish"))}
                             </span>
                         </Button>
                     </div>

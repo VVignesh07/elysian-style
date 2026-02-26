@@ -260,20 +260,22 @@ export function useCreateProduct(supabaseClient: SupabaseClient<Database> = defa
         mutationFn: async (input: CreateProductInput) => {
             const imageUrls: string[] = [];
 
-            // Upload images if they're base64
+            // Upload images in parallel if they're base64
             if (input.images && input.images.length > 0) {
-                for (const image of input.images) {
+                const uploadPromises = input.images.map(async (image) => {
                     if (image.startsWith('data:image')) {
                         try {
-                            const url = await uploadBase64Image(image, 'product-images');
-                            imageUrls.push(url);
+                            return await uploadBase64Image(image, 'product-images');
                         } catch (error) {
                             console.error('Error uploading image:', error);
+                            return null;
                         }
-                    } else {
-                        imageUrls.push(image);
                     }
-                }
+                    return image;
+                });
+
+                const results = await Promise.all(uploadPromises);
+                imageUrls.push(...results.filter((url): url is string => url !== null));
             }
 
             const insertProduct = async (attemptSlug: string, attemptSku: string | null, retryCount = 0): Promise<Product> => {
@@ -349,20 +351,22 @@ export function useUpdateProduct(supabaseClient: SupabaseClient<Database> = defa
         mutationFn: async ({ id, ...input }: CreateProductInput & { id: string }) => {
             const imageUrls: string[] = [];
 
-            // Upload new images if they're base64
+            // Upload new images in parallel if they're base64
             if (input.images && input.images.length > 0) {
-                for (const image of input.images) {
+                const uploadPromises = input.images.map(async (image) => {
                     if (image.startsWith('data:image')) {
                         try {
-                            const url = await uploadBase64Image(image, 'product-images');
-                            imageUrls.push(url);
+                            return await uploadBase64Image(image, 'product-images');
                         } catch (error) {
                             console.error('Error uploading image:', error);
+                            return null;
                         }
-                    } else {
-                        imageUrls.push(image);
                     }
-                }
+                    return image;
+                });
+
+                const results = await Promise.all(uploadPromises);
+                imageUrls.push(...results.filter((url): url is string => url !== null));
             }
 
             const updateProduct = async (attemptSlug: string, attemptSku: string | null, retryCount = 0): Promise<Product> => {
