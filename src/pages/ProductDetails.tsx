@@ -608,10 +608,10 @@ const ProductDetails = () => {
                                             <div className="flex items-center justify-between">
                                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Pay With</span>
                                                 <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-md border border-border/50">
-                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="Google Pay" className="h-3.5 object-contain" />
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="Google Pay" className="h-4 object-contain" />
                                                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe" className="h-4 object-contain" />
-                                                    <img src="https://logodownload.org/wp-content/uploads/2019/09/paytm-logo-2.png" alt="Paytm" className="h-3.5 object-contain" />
-                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-3.5 object-contain" />
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Paytm_Logo.svg" alt="Paytm" className="h-4 object-contain" />
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-4 object-contain" />
                                                 </div>
                                             </div>
 
