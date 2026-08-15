@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, RefreshCw, Loader2 } from "lucide-react";
+import { useMouseTilt } from "@/hooks/useMouseTilt";
 import heroImage from "@/assets/hero-fashion.jpg";
 import logo from "@/assets/zerofasions.in2.png";
 
@@ -17,6 +18,10 @@ const Login = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const location = useLocation();
+
+    // Premium 3D tilt refs
+    const formTiltRef = useMouseTilt<HTMLDivElement>({ maxTilt: 8, scale: 1.02, glare: true, glareOpacity: 0.1 });
+    const bannerTiltRef = useMouseTilt<HTMLDivElement>({ maxTilt: 3, scale: 1.05, glare: false });
 
     // Handle redirection after login
     useEffect(() => {
@@ -54,30 +59,39 @@ const Login = () => {
             <Navbar />
 
             {/* Left Side - Luxury Banner */}
-            <div className="hidden lg:block relative h-full bg-muted overflow-hidden">
-                <img
-                    src={heroImage}
-                    alt="Fashion Model"
-                    className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
-                />
-                <div className="absolute inset-0 bg-black/40" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center space-y-6">
-                        <img
-                            src={logo}
-                            alt="Zero Fashion"
-                            className="h-24 lg:h-32 w-auto object-contain brightness-0 invert mx-auto drop-shadow-2xl"
-                        />
+            <div className="hidden lg:block relative h-full bg-muted overflow-hidden perspective-[1000px] p-8">
+                <div ref={bannerTiltRef} className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl">
+                    <img
+                        src={heroImage}
+                        alt="Fashion Model"
+                        className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+                    />
+                    <div className="absolute inset-0 bg-black/40" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center space-y-6">
+                            <img
+                                src={logo}
+                                alt="Zero Fashion"
+                                className="h-24 lg:h-32 w-auto object-contain brightness-0 invert mx-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-transform duration-700 hover:scale-110"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Right Side - Auth Form */}
-            <div className="flex items-center justify-center p-8 bg-background">
-                <div className="w-full max-w-md space-y-8">
-                    <div className="text-center space-y-2">
-                        <h2 className="text-3xl font-heading font-normal tracking-tight">Welcome Back</h2>
-                        <p className="text-muted-foreground font-body text-sm">Access your Zero Fashion account</p>
+            <div className="flex items-center justify-center p-8 bg-[#FDFBF7] relative overflow-hidden perspective-[1200px]">
+                {/* Decorative background blur */}
+                <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-luxury-gold/5 blur-[120px] pointer-events-none" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-[#E8E1D9]/50 blur-[100px] pointer-events-none" />
+
+                <div 
+                    ref={formTiltRef}
+                    className="w-full max-w-md space-y-8 bg-white/80 backdrop-blur-xl p-10 sm:p-12 rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-white/50 relative z-10"
+                >
+                    <div className="text-center space-y-3">
+                        <h2 className="text-4xl font-heading font-normal tracking-tight text-[#332D2D]">Welcome Back</h2>
+                        <p className="text-muted-foreground font-body text-sm tracking-wide">Access your Zero Fashion account</p>
                     </div>
 
                     <div className="space-y-6">

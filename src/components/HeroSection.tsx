@@ -1,190 +1,413 @@
-import { useState, useEffect } from "react";
-import heroImage from "@/assets/hero-fashion.jpg";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useHeroSlides } from "@/hooks/useHeroSlides";
-import { Skeleton } from "@/components/ui/skeleton";
-import { StarDoodle, CircleDoodle, SparkleDoodle, ArrowDoodle } from "@/components/DoodleDecorations";
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
+
+/* ── Fallback Image data ── */
+const FALLBACK_IMAGES = [
+  {
+    src: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/1.02464a56.png",
+    bg: "#F4845F",
+  },
+  {
+    src: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/2.b977faab.png",
+    bg: "#6BBF7A",
+  },
+  {
+    src: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/3.4df853b4.png",
+    bg: "#E882B4",
+  },
+  {
+    src: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/4.4457fbce.png",
+    bg: "#6EB5FF",
+  },
+];
+
+const BG_COLORS = ["#F4845F", "#6BBF7A", "#E882B4", "#6EB5FF", "#A982E8", "#FFB56B"];
+
+const TRANSITION_MS = 650;
+const EASING = "cubic-bezier(0.4, 0, 0.2, 1)";
+
+/* ── Grain overlay SVG (fractalNoise) ── */
+const GRAIN_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.08'/%3E%3C/svg%3E")`;
+
+type Role = "center" | "left" | "right" | "back" | "hidden";
 
 const HeroSection = () => {
-  const { data: slides = [], isLoading } = useHeroSlides();
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const { data: dbSlides = [], isLoading } = useHeroSlides();
+  const activeSlides = dbSlides.filter(s => s.is_active).sort((a, b) => a.display_order - b.display_order);
+  
+  // Use DB slides if available, otherwise fallback
+  const displayItems = activeSlides.length > 0 
+    ? activeSlides.map((slide, i) => ({
+        id: slide.id,
+        src: slide.image_url,
+        bg: BG_COLORS[i % BG_COLORS.length],
+        title: slide.title || "ZERO FASHION",
+        subtitle: slide.subtitle || "Premium fashion for every occasion.",
+        cta_text: slide.cta_text || "DISCOVER IT",
+        cta_link: slide.cta_link || "#"
+      }))
+    : FALLBACK_IMAGES.map((img, i) => ({
+        id: i.toString(),
+        src: img.src,
+        bg: img.bg,
+        title: "ZERO FASHION",
+        subtitle: "The artwork is stunning, shipped fully prepared. The finish is a vision, the 3D craft is flawless. Many thanks! Wishing you the win. Order now.",
+        cta_text: "DISCOVER IT",
+        cta_link: "#"
+      }));
 
-  const activeSlides = slides.filter(s => s.is_active);
-  const currentSlide = activeSlides[currentSlideIndex];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const lockRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-advance slides if multiple exist
+  /* ── Responsive check ── */
   useEffect(() => {
-    if (activeSlides.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentSlideIndex((prev) => (prev + 1) % activeSlides.length);
-      }, 5000); // 5 seconds per slide
-      return () => clearInterval(interval);
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  /* ── Preload all images ── */
+  useEffect(() => {
+    displayItems.forEach(({ src }) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [displayItems]);
+
+  /* ── Navigate ── */
+  const navigate = useCallback(
+    (dir: "next" | "prev") => {
+      if (isAnimating || displayItems.length <= 1) return;
+      setIsAnimating(true);
+      const total = displayItems.length;
+      setActiveIndex((prev) =>
+        dir === "next" ? (prev + 1) % total : (prev + total - 1) % total
+      );
+      lockRef.current = setTimeout(() => setIsAnimating(false), TRANSITION_MS);
+    },
+    [isAnimating, displayItems.length]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (lockRef.current) clearTimeout(lockRef.current);
+    };
+  }, []);
+
+  /* ── Keyboard navigation ── */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") navigate("prev");
+      if (e.key === "ArrowRight") navigate("next");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate]);
+
+  /* ── Roles ── */
+  const getRoles = (): Record<number, Role> => {
+    const total = displayItems.length;
+    if (total === 1) return { 0: "center" };
+    if (total === 2) return {
+      [activeIndex]: "center",
+      [(activeIndex + 1) % total]: "back"
+    };
+    if (total === 3) return {
+      [activeIndex]: "center",
+      [(activeIndex + total - 1) % total]: "left",
+      [(activeIndex + 1) % total]: "right"
+    };
+    
+    return {
+      [activeIndex]: "center",
+      [(activeIndex + total - 1) % total]: "left",
+      [(activeIndex + 1) % total]: "right",
+      [(activeIndex + 2) % total]: "back",
+    };
+  };
+
+  const roles = getRoles();
+
+  /* ── Per-role styles ── */
+  const getRoleStyle = (role: Role | undefined): React.CSSProperties => {
+    const transition = [
+      "transform",
+      "filter",
+      "opacity",
+      "left",
+      "height",
+      "bottom",
+    ]
+      .map((p) => `${p} ${TRANSITION_MS}ms ${EASING}`)
+      .join(", ");
+
+    const base: React.CSSProperties = {
+      position: "absolute",
+      aspectRatio: "0.6 / 1",
+      transition,
+      willChange: "transform, filter, opacity",
+      transformOrigin: "bottom center",
+    };
+
+    if (!role || role === "hidden") {
+      return {
+        ...base,
+        transform: "translateX(-50%) scale(0.5)",
+        opacity: 0,
+        zIndex: -1,
+        left: "50%",
+        height: isMobile ? "10%" : "20%",
+        bottom: isMobile ? "32%" : "12%",
+        pointerEvents: "none"
+      };
     }
-  }, [activeSlides.length]);
 
-  // Fallback to static content if no active slides and not loading
-  if (!isLoading && activeSlides.length === 0) {
-    return (
-      <section
-        className="min-h-[80vh] lg:min-h-screen flex items-center pt-32 pb-20 lg:pt-20 relative overflow-hidden"
-        style={{ backgroundColor: '#ede0d4' }}
-      >
-        <div className="container mx-auto px-6 lg:px-12 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-            {/* Left - Text */}
-            <div className="opacity-0 animate-fade-in-left text-center lg:text-left relative" style={{ animationDelay: "0.2s" }}>
-              {/* Floating Doodles */}
-              <StarDoodle className="absolute -top-6 -left-8 w-10 h-10 text-doodle-yellow opacity-40" />
-              <CircleDoodle className="absolute top-20 -right-12 w-16 h-16 text-doodle-purple opacity-30" />
-              <SparkleDoodle className="absolute bottom-10 -left-6 w-8 h-8 text-doodle-pink opacity-50" />
+    switch (role) {
+      case "center":
+        return {
+          ...base,
+          transform: `translateX(-50%) scale(1)`,
+          filter: "blur(0px)",
+          opacity: 1,
+          zIndex: 20,
+          left: "50%",
+          height: isMobile ? "75%" : "92%",
+          bottom: isMobile ? "12%" : "0",
+        };
+      case "left":
+        return {
+          ...base,
+          transform: "translateX(-50%) scale(1)",
+          filter: "blur(2px)",
+          opacity: 0.85,
+          zIndex: 10,
+          left: isMobile ? "20%" : "30%",
+          height: isMobile ? "16%" : "28%",
+          bottom: isMobile ? "32%" : "12%",
+        };
+      case "right":
+        return {
+          ...base,
+          transform: "translateX(-50%) scale(1)",
+          filter: "blur(2px)",
+          opacity: 0.85,
+          zIndex: 10,
+          left: isMobile ? "80%" : "70%",
+          height: isMobile ? "16%" : "28%",
+          bottom: isMobile ? "32%" : "12%",
+        };
+      case "back":
+        return {
+          ...base,
+          transform: "translateX(-50%) scale(1)",
+          filter: "blur(4px)",
+          opacity: 1,
+          zIndex: 5,
+          left: "50%",
+          height: isMobile ? "13%" : "22%",
+          bottom: isMobile ? "32%" : "12%",
+        };
+    }
+  };
 
-              <p className="text-xs font-body text-luxury-spacing-wide text-muted-foreground mb-6">
-                New Season 2026
-              </p>
-              <h1 className="font-heading text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-light leading-[1.1] sm:leading-[0.95] text-foreground mb-6">
-                Define
-                <br />
-                Your
-                <br />
-                <span className="italic font-light">Style</span>
-              </h1>
-              <p className="font-body text-sm sm:text-base lg:text-lg text-muted-foreground max-w-md mx-auto lg:mx-0 mb-10 leading-relaxed">
-                Premium fashion for every occasion. Discover curated collections that blend timeless elegance with modern sophistication.
-              </p>
-              <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-                <a href="#trending" className="luxury-btn-primary">
-                  Shop Men
-                </a>
-                <a href="#trending" className="luxury-btn-outline">
-                  Shop Women
-                </a>
-              </div>
-            </div>
-
-            {/* Right - Image */}
-            <div className="opacity-0 animate-fade-in-right" style={{ animationDelay: "0.5s" }}>
-              <div className="relative">
-                <OptimizedImage
-                  src={heroImage}
-                  alt="Luxury fashion editorial"
-                  width={1200}
-                  priority={true}
-                  className="w-full h-[400px] sm:h-[500px] lg:h-[650px] object-cover rounded-lg shadow-luxury"
-                />
-                <div className="absolute -bottom-6 -left-6 bg-card p-6 rounded-lg shadow-elevated hidden lg:block">
-                  <p className="font-heading text-2xl font-semibold text-foreground">250+</p>
-                  <p className="text-xs font-body text-luxury-spacing text-muted-foreground">New Arrivals</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Loading state
   if (isLoading) {
     return (
-      <section className="min-h-[80vh] lg:min-h-screen flex items-center pt-32 lg:pt-20 relative bg-[#ede0d4]">
-        <div className="container mx-auto px-6 lg:px-12">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <Skeleton className="h-4 w-1/4" />
-              <div className="space-y-4">
-                <Skeleton className="h-20 w-3/4" />
-                <Skeleton className="h-20 w-2/3" />
-              </div>
-              <Skeleton className="h-10 w-1/3" />
-              <div className="flex gap-4">
-                <Skeleton className="h-14 w-40" />
-                <Skeleton className="h-14 w-40" />
-              </div>
-            </div>
-            <Skeleton className="h-[650px] w-full rounded-2xl" />
-          </div>
-        </div>
-      </section>
+      <div className="w-full h-screen bg-[#F4845F] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white animate-spin opacity-50" />
+      </div>
     );
   }
 
-  // Dynamic Content
+  const currentItem = displayItems[activeIndex];
+
   return (
-    <section
-      className="min-h-[80vh] lg:min-h-screen flex items-center pt-32 pb-20 lg:pt-20 relative overflow-hidden transition-all duration-1000"
-      style={{ backgroundColor: '#ede0d4' }}
+    <div
+      style={{
+        backgroundColor: currentItem.bg,
+        transition: `background-color ${TRANSITION_MS}ms ${EASING}`,
+        fontFamily: "Inter, sans-serif",
+      }}
+      className="relative w-full overflow-hidden"
     >
-      {/* Dynamic Background for Full Layout */}
-      {currentSlide.layout_type === 'full' && (
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-black/40 z-10" />
-          <OptimizedImage
-            src={currentSlide.image_url}
-            alt=""
-            width={1920}
-            priority={true}
-            className="w-full h-full object-cover animate-fade-in"
-          />
+      <div
+        className="relative w-full"
+        style={{ height: "100vh", overflow: "hidden", paddingTop: "80px" }}
+      >
+        {/* ── 1. Grain overlay ── */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            zIndex: 50,
+            opacity: 0.4,
+            backgroundImage: GRAIN_SVG,
+            backgroundSize: "200px 200px",
+            backgroundRepeat: "repeat",
+          }}
+        />
+
+        {/* ── 2. Giant ghost text ── */}
+        <div
+          className="absolute inset-x-0 flex items-center justify-center pointer-events-none select-none"
+          style={{ zIndex: 2, top: "18%" }}
+        >
+          <span
+            style={{
+              fontFamily: "'Anton', sans-serif",
+              fontSize: "clamp(60px, 20vw, 320px)",
+              fontWeight: 900,
+              color: "white",
+              opacity: 1,
+              lineHeight: 1,
+              textTransform: "uppercase",
+              letterSpacing: "-0.02em",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {currentItem.title.split('\n')[0] || "ZERO FASHION"}
+          </span>
         </div>
-      )}
 
-      <div className="container mx-auto px-6 lg:px-12 relative z-10">
-        <div key={currentSlide.id} className={`${currentSlide.layout_type === 'full' ? 'flex flex-col items-start text-left' : 'grid lg:grid-cols-2 gap-12 lg:gap-8 items-center'}`}>
-          {/* Left - Text */}
-          <div className={`animate-fade-in-left ${currentSlide.layout_type === 'full' ? 'max-w-3xl' : 'text-center lg:text-left'}`}>
-            <p className={`text-xs font-body text-luxury-spacing-wide mb-6 ${currentSlide.layout_type === 'full' ? 'text-white/80' : 'text-muted-foreground'}`}>
-              Exclusive Collection
-            </p>
-            <div className={`font-heading text-3xl sm:text-6xl lg:text-7xl xl:text-8xl font-light leading-[1.1] sm:leading-[0.95] mb-6 whitespace-pre-line ${currentSlide.layout_type === 'full' ? 'text-white' : 'text-foreground'}`}>
-              {currentSlide.title}
-            </div>
-            {currentSlide.subtitle && (
-              <p className={`font-body text-sm sm:text-base lg:text-lg max-w-md mb-8 lg:mb-10 leading-relaxed ${currentSlide.layout_type === 'full' ? 'text-white/70' : 'text-muted-foreground'} ${currentSlide.layout_type === 'full' ? 'lg:mx-0' : 'mx-auto lg:mx-0'}`}>
-                {currentSlide.subtitle}
-              </p>
-            )}
-            <div className={`flex flex-wrap gap-4 ${currentSlide.layout_type === 'full' ? 'justify-start' : 'justify-center lg:justify-start'}`}>
-              {currentSlide.cta_text && (
-                <a href={currentSlide.cta_link || "#"} className={currentSlide.layout_type === 'full' ? "luxury-btn bg-white text-black hover:bg-white/90" : "luxury-btn-primary"}>
-                  {currentSlide.cta_text}
-                </a>
-              )}
-            </div>
-          </div>
 
-          {/* Right - Image (Only if Split) */}
-          {currentSlide.layout_type === 'split' && (
-            <div className="animate-fade-in-right">
-              <div className="relative">
-                <OptimizedImage
-                  src={currentSlide.image_url}
-                  alt={currentSlide.title || "Hero Banner"}
-                  width={1200}
-                  priority={true}
-                  className="w-full h-[400px] sm:h-[500px] lg:h-[650px] object-cover rounded-lg shadow-luxury transition-all duration-700"
+
+        {/* ── 4. Carousel ── */}
+        <div className="absolute inset-0" style={{ zIndex: 3 }}>
+          {displayItems.map((item, idx) => {
+            const role = roles[idx] || "hidden";
+            return (
+              <div key={item.id} style={getRoleStyle(role)}>
+                <img
+                  src={item.src}
+                  alt={item.title || `Slide ${idx + 1}`}
+                  draggable={false}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    objectPosition: "bottom center",
+                  }}
                 />
               </div>
+            );
+          })}
+        </div>
+
+        {/* ── 5. Bottom-left text + nav buttons ── */}
+        <div
+          className="absolute bottom-6 left-4 sm:bottom-20 sm:left-24"
+          style={{ zIndex: 60, maxWidth: 320 }}
+        >
+          <p
+            className="font-bold uppercase tracking-widest mb-2 sm:mb-3 text-base sm:text-[22px] line-clamp-1"
+            style={{
+              color: "white",
+              opacity: 0.95,
+              letterSpacing: "0.02em",
+            }}
+          >
+            {currentItem.title.replace(/\n/g, " ")}
+          </p>
+
+          <p
+            className="hidden sm:block text-xs sm:text-sm mb-4 sm:mb-5 line-clamp-3"
+            style={{
+              color: "white",
+              opacity: 0.85,
+              lineHeight: 1.6,
+            }}
+          >
+            {currentItem.subtitle}
+          </p>
+
+          {displayItems.length > 1 && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate("prev")}
+                className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center rounded-full border-2 border-white cursor-pointer"
+                style={{
+                  background: "transparent",
+                  color: "white",
+                  transition: "transform 150ms, background-color 150ms",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.08)";
+                  e.currentTarget.style.backgroundColor =
+                    "rgba(255,255,255,0.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+                aria-label="Previous figurine"
+              >
+                <ArrowLeft size={26} strokeWidth={2.25} />
+              </button>
+
+              <button
+                onClick={() => navigate("next")}
+                className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center rounded-full border-2 border-white cursor-pointer"
+                style={{
+                  background: "transparent",
+                  color: "white",
+                  transition: "transform 150ms, background-color 150ms",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.08)";
+                  e.currentTarget.style.backgroundColor =
+                    "rgba(255,255,255,0.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+                aria-label="Next figurine"
+              >
+                <ArrowRight size={26} strokeWidth={2.25} />
+              </button>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Navigation Dots */}
-      {activeSlides.length > 1 && (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 z-30">
-          {activeSlides.map((_, idx) => (
-            <button
-              key={idx}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentSlideIndex
-                ? "bg-luxury-gold w-6"
-                : (currentSlide.layout_type === 'full' ? "bg-white/40 hover:bg-white/60" : "bg-black/20 hover:bg-black/40")
-                }`}
-              onClick={() => setCurrentSlideIndex(idx)}
+        {/* ── 6. Bottom-right link CTA ── */}
+        <div
+          className="absolute bottom-6 right-4 sm:bottom-20 sm:right-10"
+          style={{ zIndex: 60 }}
+        >
+          <Link
+            to={currentItem.cta_link}
+            className="flex items-center gap-2"
+            style={{
+              fontFamily: "'Anton', sans-serif",
+              fontSize: "clamp(20px, 4vw, 56px)",
+              fontWeight: 400,
+              color: "white",
+              opacity: 0.95,
+              letterSpacing: "-0.02em",
+              lineHeight: 1,
+              textTransform: "uppercase",
+              textDecoration: "none",
+              transition: "opacity 200ms",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "1";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "0.95";
+            }}
+          >
+            {currentItem.cta_text}
+            <ArrowRight
+              className="w-5 h-5 sm:w-8 sm:h-8"
+              strokeWidth={2.25}
             />
-          ))}
+          </Link>
         </div>
-      )}
-    </section>
+      </div>
+    </div>
   );
 };
 

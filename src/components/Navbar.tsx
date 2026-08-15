@@ -91,128 +91,133 @@ const Navbar = () => {
       >
         <AnnouncementBar />
         <div className="container mx-auto px-6 lg:px-12">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Mobile left: menu + search */}
-            <div className="flex items-center gap-1 lg:hidden">
-              <button
-                onClick={() => setMobileOpen(!mobileOpen)}
-                className="text-white p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
-                aria-label="Toggle menu"
-              >
-                {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="text-white/80 hover:text-white p-2 transition-colors"
-                aria-label="Search"
-              >
-                <Search size={20} />
-              </button>
-            </div>
+          <div className="flex items-center justify-between h-16 lg:h-20 relative">
+            {/* Left Section (Mobile Menu / Desktop Links) */}
+            <div className="flex items-center flex-1">
+              {/* Mobile left: menu + search */}
+              <div className="flex items-center gap-1 lg:hidden">
+                <button
+                  onClick={() => setMobileOpen(!mobileOpen)}
+                  className="text-white p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+                  aria-label="Toggle menu"
+                >
+                  {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+                <button
+                  onClick={() => setIsSearchOpen(!isSearchOpen)}
+                  className="text-white/80 hover:text-white p-2 transition-colors"
+                  aria-label="Search"
+                >
+                  <Search size={20} />
+                </button>
+              </div>
 
-            {/* Dynamic Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
-              <Link to="/new-in" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">New In</Link>
+              {/* Dynamic Navigation */}
+              <div className="hidden lg:flex items-center gap-8">
+                <Link to="/new-in" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">New In</Link>
 
-              {rootCategories.map((root: any) => {
-                const hasChildren = root.children && root.children.length > 0;
+                {rootCategories.map((root: any) => {
+                  const hasChildren = root.children && root.children.length > 0;
 
-                if (!hasChildren) {
-                  return (
-                    <Link
-                      key={root.id}
-                      to={`/category/${root.slug}`}
-                      className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300"
-                    >
-                      {root.name}
-                    </Link>
-                  );
-                }
-
-                return (
-                  <DropdownMenu key={root.id}>
-                    <DropdownMenuTrigger className="flex items-center gap-1 text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300 outline-none">
-                      {root.name} <ChevronDown size={12} className="opacity-50" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="start"
-                      className="bg-[#FAFAF8] border border-border/40 p-4 shadow-2xl rounded-xl"
-                      style={{ minWidth: `${Math.max(260, root.children.length * 170)}px` }}
-                    >
-                      {/* View All link */}
-                      <DropdownMenuItem
-                        onClick={() => navigate(`/category/${root.slug}`)}
-                        className="font-bold text-luxury-gold text-xs mb-3 pb-3 border-b border-border/40 focus:bg-luxury-gold/5 cursor-pointer"
+                  if (!hasChildren) {
+                    return (
+                      <Link
+                        key={root.id}
+                        to={`/category/${root.slug}`}
+                        className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300"
                       >
-                        View All {root.name}
-                      </DropdownMenuItem>
+                        {root.name}
+                      </Link>
+                    );
+                  }
 
-                      {/* Multi-column layout: one column per child (Shirts, Pants) */}
-                      <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${root.children.length}, minmax(140px, 1fr))` }}>
-                        {root.children
-                          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
-                          .map((sub: any) => {
-                            const subSub = categories.filter(c => c.parent_id === sub.id)
-                              .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+                  return (
+                    <DropdownMenu key={root.id}>
+                      <DropdownMenuTrigger className="flex items-center gap-1 text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300 outline-none">
+                        {root.name} <ChevronDown size={12} className="opacity-50" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="start"
+                        className="bg-[#FAFAF8] border border-border/40 p-4 shadow-2xl rounded-xl"
+                        style={{ minWidth: `${Math.max(260, root.children.length * 170)}px` }}
+                      >
+                        {/* View All link */}
+                        <DropdownMenuItem
+                          onClick={() => navigate(`/category/${root.slug}`)}
+                          className="font-bold text-luxury-gold text-xs mb-3 pb-3 border-b border-border/40 focus:bg-luxury-gold/5 cursor-pointer"
+                        >
+                          View All {root.name}
+                        </DropdownMenuItem>
 
-                            return (
-                              <div key={sub.id}>
-                                {/* Column header: Shirts / Pants */}
-                                <button
-                                  onClick={() => navigate(`/category/${sub.slug}`)}
-                                  className="text-[10px] font-bold text-foreground/50 uppercase tracking-[0.2em] border-b border-border/30 pb-2 mb-2 w-full text-left hover:text-foreground transition-colors"
-                                >
-                                  {sub.name}
-                                </button>
+                        {/* Multi-column layout: one column per child (Shirts, Pants) */}
+                        <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${root.children.length}, minmax(140px, 1fr))` }}>
+                          {root.children
+                            .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+                            .map((sub: any) => {
+                              const subSub = categories.filter(c => c.parent_id === sub.id)
+                                .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
-                                {/* Sub-category list */}
-                                <div className="space-y-0.5">
-                                  {subSub.length > 0 ? (
-                                    subSub.map((gc: any) => (
+                              return (
+                                <div key={sub.id}>
+                                  {/* Column header: Shirts / Pants */}
+                                  <button
+                                    onClick={() => navigate(`/category/${sub.slug}`)}
+                                    className="text-[10px] font-bold text-foreground/50 uppercase tracking-[0.2em] border-b border-border/30 pb-2 mb-2 w-full text-left hover:text-foreground transition-colors"
+                                  >
+                                    {sub.name}
+                                  </button>
+
+                                  {/* Sub-category list */}
+                                  <div className="space-y-0.5">
+                                    {subSub.length > 0 ? (
+                                      subSub.map((gc: any) => (
+                                        <DropdownMenuItem
+                                          key={gc.id}
+                                          onClick={() => navigate(`/category/${gc.slug}`)}
+                                          className="text-foreground/70 hover:text-foreground hover:bg-foreground/5 text-[12px] py-1.5 px-2 rounded cursor-pointer whitespace-nowrap focus:bg-foreground/5"
+                                        >
+                                          {gc.name}
+                                        </DropdownMenuItem>
+                                      ))
+                                    ) : (
                                       <DropdownMenuItem
-                                        key={gc.id}
-                                        onClick={() => navigate(`/category/${gc.slug}`)}
-                                        className="text-foreground/70 hover:text-foreground hover:bg-foreground/5 text-[12px] py-1.5 px-2 rounded cursor-pointer whitespace-nowrap focus:bg-foreground/5"
+                                        onClick={() => navigate(`/category/${sub.slug}`)}
+                                        className="text-foreground/50 hover:text-foreground hover:bg-foreground/5 text-[11px] py-1 px-2 italic cursor-pointer focus:bg-foreground/5"
                                       >
-                                        {gc.name}
+                                        Shop {sub.name}
                                       </DropdownMenuItem>
-                                    ))
-                                  ) : (
-                                    <DropdownMenuItem
-                                      onClick={() => navigate(`/category/${sub.slug}`)}
-                                      className="text-foreground/50 hover:text-foreground hover:bg-foreground/5 text-[11px] py-1 px-2 italic cursor-pointer focus:bg-foreground/5"
-                                    >
-                                      Shop {sub.name}
-                                    </DropdownMenuItem>
-                                  )}
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                );
-              })}
+                              );
+                            })}
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  );
+                })}
 
-              <Link to="/combos" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Combos</Link>
-              <Link to="/collections" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Collections</Link>
-              <Link to="/our-story" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Our Story</Link>
+                <Link to="/combos" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Combos</Link>
+                <Link to="/collections" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Collections</Link>
+                <Link to="/our-story" className="text-xs font-body text-luxury-spacing text-white/80 hover:text-white transition-colors duration-300">Our Story</Link>
+              </div>
             </div>
 
-            {/* Logo */}
-            <Link to="/" className="flex items-center">
-              <img
-                src={logo}
-                alt="Zero Fashion"
-                className="h-10 sm:h-12 lg:h-16 w-auto object-contain brightness-110"
-              />
-            </Link>
+            {/* Logo (Absolute Center) */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+              <Link to="/" className="flex items-center">
+                <img
+                  src={logo}
+                  alt="Zero Fashion"
+                  className="h-10 sm:h-12 lg:h-16 w-auto object-contain brightness-110"
+                />
+              </Link>
+            </div>
 
             {/* Right nav */}
-            <div className="flex items-center gap-4 lg:gap-6">
+            <div className="flex items-center gap-4 lg:gap-6 flex-1 justify-end">
               {/* Search Input (Desktop) */}
-              <div className={`hidden lg:flex items-center transition-all duration-300 ${isSearchOpen ? "w-64 opacity-100" : "w-0 opacity-0 overflow-hidden"}`}>
+              <div className={`hidden lg:flex items-center transition-all duration-300 ${isSearchOpen ? "w-64 opacity-100 mr-2" : "w-0 opacity-0 overflow-hidden"}`}>
                 <form onSubmit={handleSearch} className="relative w-full">
                   <input
                     type="text"
@@ -230,9 +235,9 @@ const Navbar = () => {
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className="hidden lg:block text-white/80 hover:text-white transition-colors"
-                aria-label="Search"
+                aria-label={isSearchOpen ? "Close Search" : "Search"}
               >
-                <Search size={18} />
+                {isSearchOpen ? <X size={18} /> : <Search size={18} />}
               </button>
 
               {user ? (

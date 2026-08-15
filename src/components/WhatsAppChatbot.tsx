@@ -107,7 +107,7 @@ const WhatsAppChatbot = () => {
                 onClick={toggleChat}
                 className={cn(
                     "w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 relative overflow-hidden",
-                    isOpen ? "bg-white text-[#634832] rotate-90" : "bg-[#634832] text-white hover:scale-110 active:scale-95"
+                    isOpen ? "bg-white text-[#0a0a0a] rotate-90" : "bg-[#0a0a0a] text-white hover:scale-110 active:scale-95"
                 )}
             >
                 {isOpen ? <X size={28} /> : <WhatsAppIcon size={28} />}
@@ -117,12 +117,12 @@ const WhatsAppChatbot = () => {
             {isOpen && (
                 <div className="absolute bottom-16 sm:bottom-20 right-0 w-[calc(100vw-2rem)] sm:w-[350px] max-h-[calc(100vh-140px)] sm:max-h-[500px] flex flex-col bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden border border-border animate-in slide-in-from-bottom-5 duration-300">
                     {/* Header */}
-                    <div className="bg-[#634832] p-3 sm:p-4 text-white flex items-center gap-3 shrink-0">
+                    <div className="bg-[#0a0a0a] p-3 sm:p-4 text-white flex items-center gap-3 shrink-0">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 border border-white/10 overflow-hidden">
                             <img src={logo} alt="ZF" className="w-full h-full object-contain p-1" />
                         </div>
                         <div>
-                            <h3 className="font-heading text-sm sm:text-base font-light leading-none">Zero Fashion</h3>
+                            <h3 className="font-body font-bold text-sm sm:text-base leading-none">Zero Fashion</h3>
                             <p className="text-[7px] sm:text-[8px] text-white/70 uppercase tracking-widest mt-1">Available 24/7</p>
                         </div>
                     </div>
@@ -136,7 +136,7 @@ const WhatsAppChatbot = () => {
                                     "max-w-[85%] rounded-2xl px-4 py-3 text-sm animate-in fade-in slide-in-from-bottom-2",
                                     msg.sender === 'bot'
                                         ? "bg-white border border-border text-foreground rounded-tl-none shadow-sm"
-                                        : "bg-[#634832] text-white ml-auto rounded-tr-none"
+                                        : "bg-[#0a0a0a] text-white ml-auto rounded-tr-none"
                                 )}
                             >
                                 {msg.text}
@@ -153,7 +153,7 @@ const WhatsAppChatbot = () => {
                                 <button
                                     key={i}
                                     onClick={() => handleSendMessage(action.label)}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-full border border-border text-xs text-foreground hover:border-[#634832] hover:text-[#634832] hover:bg-[#634832]/5 transition-all"
+                                    className="flex items-center gap-2 px-3 py-2 rounded-full border border-border text-xs text-foreground hover:border-[#0a0a0a] hover:text-[#0a0a0a] hover:bg-[#0a0a0a]/5 transition-all"
                                 >
                                     <action.icon size={12} />
                                     {action.label}
@@ -175,12 +175,12 @@ const WhatsAppChatbot = () => {
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
                             placeholder="Type a message..."
-                            className="flex-1 bg-white border border-border rounded-full px-3 py-2 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#634832] transition-all"
+                            className="flex-1 bg-white border border-border rounded-full px-3 py-2 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#0a0a0a] transition-all"
                         />
                         <button
                             type="submit"
                             disabled={!userInput.trim()}
-                            className="w-8 h-8 rounded-full bg-[#634832] text-white flex items-center justify-center hover:bg-black transition-colors disabled:opacity-50"
+                            className="w-8 h-8 rounded-full bg-[#0a0a0a] text-white flex items-center justify-center hover:bg-black transition-colors disabled:opacity-50"
                         >
                             <Send size={12} />
                         </button>

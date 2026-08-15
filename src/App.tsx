@@ -26,6 +26,9 @@ const Wishlist = React.lazy(() => import("./pages/Wishlist"));
 const Profile = React.lazy(() => import("./pages/Profile"));
 const Orders = React.lazy(() => import("./pages/Orders"));
 const OurStory = React.lazy(() => import("./pages/OurStory"));
+const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
+const Terms = React.lazy(() => import("./pages/Terms"));
+const CookiePolicy = React.lazy(() => import("./pages/CookiePolicy"));
 
 // Admin pages (Lazy Loaded for faster initial site load)
 const AdminDashboard = React.lazy(() => import("./pages/admin/AdminDashboard"));
@@ -85,6 +88,9 @@ const App = () => (
                       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                       <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
                       <Route path="/our-story" element={<OurStory />} />
+                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/cookie-policy" element={<CookiePolicy />} />
 
                       {/* Admin Access */}
                       <Route path="/admin/login" element={<AdminLogin />} />

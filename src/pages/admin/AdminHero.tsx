@@ -38,6 +38,49 @@ import { StarDoodle, CircleDoodle, SparkleDoodle } from "@/components/DoodleDeco
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const DEFAULT_SLIDES = [
+  {
+    image_url: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/1.02464a56.png",
+    title: "ZERO\nFASHION",
+    subtitle: "The artwork is stunning, shipped fully prepared. The finish is a vision, the 3D craft is flawless. Many thanks! Wishing you the win. Order now.",
+    cta_text: "DISCOVER IT",
+    cta_link: "#",
+    display_order: 0,
+    is_active: true,
+    layout_type: "split" as const
+  },
+  {
+    image_url: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/2.b977faab.png",
+    title: "ZERO\nFASHION",
+    subtitle: "The artwork is stunning, shipped fully prepared. The finish is a vision, the 3D craft is flawless. Many thanks! Wishing you the win. Order now.",
+    cta_text: "DISCOVER IT",
+    cta_link: "#",
+    display_order: 1,
+    is_active: true,
+    layout_type: "split" as const
+  },
+  {
+    image_url: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/3.4df853b4.png",
+    title: "ZERO\nFASHION",
+    subtitle: "The artwork is stunning, shipped fully prepared. The finish is a vision, the 3D craft is flawless. Many thanks! Wishing you the win. Order now.",
+    cta_text: "DISCOVER IT",
+    cta_link: "#",
+    display_order: 2,
+    is_active: true,
+    layout_type: "split" as const
+  },
+  {
+    image_url: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/4.4457fbce.png",
+    title: "ZERO\nFASHION",
+    subtitle: "The artwork is stunning, shipped fully prepared. The finish is a vision, the 3D craft is flawless. Many thanks! Wishing you the win. Order now.",
+    cta_text: "DISCOVER IT",
+    cta_link: "#",
+    display_order: 3,
+    is_active: true,
+    layout_type: "split" as const
+  }
+];
+
 const GridSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[...Array(3)].map((_, i) => (
@@ -64,6 +107,7 @@ const AdminHero = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [slideToDelete, setSlideToDelete] = useState<string | null>(null);
+    const [isSeeding, setIsSeeding] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
@@ -179,6 +223,35 @@ const AdminHero = () => {
         });
     };
 
+    const handleRestoreDefaults = async () => {
+        if (!confirm("This will add the 4 default figurine slides to your database. Proceed?")) return;
+        setIsSeeding(true);
+        try {
+            // Delete all existing slides
+            const { error: deleteError } = await supabaseAdmin
+                .from('hero_slides')
+                .delete()
+                .neq('id', '00000000-0000-0000-0000-000000000000');
+            
+            if (deleteError) throw deleteError;
+            
+            // Insert default ones
+            const { error: insertError } = await supabaseAdmin
+                .from('hero_slides')
+                .insert(DEFAULT_SLIDES);
+                
+            if (insertError) throw insertError;
+            
+            toast.success("Default slides restored successfully!");
+            // The query will automatically re-fetch if we invalidate it via a page refresh
+            window.location.reload();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to restore defaults");
+        } finally {
+            setIsSeeding(false);
+        }
+    };
+
     if (error) {
         return (
             <AdminLayout>
@@ -200,13 +273,24 @@ const AdminHero = () => {
                     <h1 className="text-2xl font-heading font-bold text-[#332D2D]">Hero Slider</h1>
                     <p className="text-muted-foreground mt-1 font-body text-sm italic">Manage the main banner images and messaging.</p>
                 </div>
-                <Button
-                    className="bg-luxury-gold hover:bg-luxury-gold/90 text-white min-w-[160px] shadow-lg rounded-xl transition-all duration-300 h-11 text-xs font-bold uppercase tracking-wider group"
-                    onClick={openAddDialog}
-                    disabled={createSlide.isPending}
-                >
-                    <Plus size={16} className="mr-2 group-hover:rotate-90 transition-transform" /> Add New Slide
-                </Button>
+                <div className="flex gap-3">
+                    <Button
+                        variant="outline"
+                        className="bg-white border-[#E8E1D9] text-[#332D2D] hover:bg-[#F9F7F4] min-w-[160px] h-11 text-xs font-bold uppercase tracking-wider"
+                        onClick={handleRestoreDefaults}
+                        disabled={isSeeding}
+                    >
+                        {isSeeding ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
+                        Restore Defaults
+                    </Button>
+                    <Button
+                        className="bg-luxury-gold hover:bg-luxury-gold/90 text-white min-w-[160px] shadow-lg rounded-xl transition-all duration-300 h-11 text-xs font-bold uppercase tracking-wider group"
+                        onClick={openAddDialog}
+                        disabled={createSlide.isPending}
+                    >
+                        <Plus size={16} className="mr-2 group-hover:rotate-90 transition-transform" /> Add New Slide
+                    </Button>
+                </div>
             </div>
 
             {/* Loading State */}

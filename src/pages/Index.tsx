@@ -35,19 +35,19 @@ const Index = () => {
       <HeroSection />
 
       <Suspense fallback={<SectionLoader />}>
+        <FeatureHighlights />
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
         <CategorySection />
       </Suspense>
 
       <Suspense fallback={<SectionLoader />}>
-        <StorySnippet />
+        <TrendingProducts />
       </Suspense>
 
       <Suspense fallback={<SectionLoader />}>
         <PromotionalBanner position="mid-page" />
-      </Suspense>
-
-      <Suspense fallback={<SectionLoader />}>
-        <TrendingProducts />
       </Suspense>
 
       <Suspense fallback={<SectionLoader />}>
@@ -59,11 +59,11 @@ const Index = () => {
       </Suspense>
 
       <Suspense fallback={<SectionLoader />}>
-        <FeatureHighlights />
+        <Newsletter />
       </Suspense>
 
       <Suspense fallback={<SectionLoader />}>
-        <Newsletter />
+        <StorySnippet />
       </Suspense>
 
       <Footer />

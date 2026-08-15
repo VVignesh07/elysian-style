@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Cormorant Garamond', 'serif'],
+        heading: ['Anton', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
       },
       colors: {

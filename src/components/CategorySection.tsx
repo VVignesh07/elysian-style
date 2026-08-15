@@ -4,171 +4,177 @@ import { toast } from "sonner";
 import { useCategories } from "@/hooks/useCategories";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useState, useCallback } from "react";
 
 const CategorySection = () => {
-  // Fetch categories from Supabase
   const { data: categoriesData = [], isLoading } = useCategories();
-
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(false);
-
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10); // 10px threshold
-    }
-  };
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 300; // Scroll amount per click
-      scrollContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  useEffect(() => {
-    handleScroll();
-    window.addEventListener('resize', handleScroll);
-    return () => window.removeEventListener('resize', handleScroll);
-  }, [categoriesData]);
-
-
-  // Filter only active categories and sort by order
+  
   const activeCategories = categoriesData
-    .filter(cat => cat.status === "Active")
+    .filter(c => c.status === 'Active')
     .sort((a, b) => a.display_order - b.display_order);
 
-  const isFeatured = (name: string) => {
-    const n = name.toUpperCase();
-    return n === 'MEN' || n === 'WOMEN';
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const nextSlide = () => {
+    setActiveIndex((prev) => (prev + 1) % activeCategories.length);
   };
 
-  // Get "Men" and "Women" categories for large cards
-  let featuredCategories = activeCategories.filter(cat => isFeatured(cat.name));
-  let regularCategories = activeCategories.filter(cat => !isFeatured(cat.name));
+  const prevSlide = () => {
+    setActiveIndex((prev) => (prev - 1 + activeCategories.length) % activeCategories.length);
+  };
 
-  // Fallback if Men/Women are not explicitly found
-  if (featuredCategories.length === 0) {
-    featuredCategories = activeCategories.slice(0, 2);
-    regularCategories = activeCategories.slice(2, 7);
-  } else {
-    // Show all remaining regular categories (or you can slice it if you want a limit)
-    // Here we let it be the full list so scrolling arrows are more useful if there are many.
-  }
+  const handleCardClick = (e: React.MouseEvent, index: number, catName: string) => {
+    if (index !== activeIndex) {
+      e.preventDefault();
+      setActiveIndex(index);
+    } else {
+      toast.info(`Viewing ${catName}`);
+    }
+  };
 
   return (
-    <section className="py-20 lg:py-28 bg-background">
+    <section className="py-24 lg:py-32 bg-[#f5f5f5] overflow-hidden">
       <div className="container mx-auto px-6 lg:px-12">
-        <ScrollReveal>
-          <div className="text-center mb-14">
-            <p className="text-xs font-body text-luxury-spacing-wide text-muted-foreground mb-3">
-              Explore
-            </p>
-            <h2 className="font-heading text-4xl lg:text-5xl font-light text-foreground">
+
+        {/* Section heading */}
+        <ScrollReveal direction="tilt-up">
+          <div className="text-center mb-16">
+            <span className="text-[10px] tracking-[.35em] uppercase text-black/40 mb-4 block font-body">Collections</span>
+            <h2 className="font-heading text-4xl lg:text-6xl font-light text-black uppercase" style={{ letterSpacing: '0.02em' }}>
               Shop by Category
             </h2>
+            <div className="w-16 h-px bg-black/20 mx-auto mt-5" />
           </div>
         </ScrollReveal>
 
-        {/* Loading State */}
+        {/* Loading */}
         {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-[300px] sm:h-[400px] lg:h-[500px] rounded-3xl" />)}
+          <div className="flex justify-center h-[500px]">
+            <Skeleton className="w-[80%] max-w-[600px] h-full rounded-3xl bg-black/5" />
           </div>
         )}
 
-        {/* Featured Categories - Large Cards */}
-        {!isLoading && featuredCategories.length > 0 && (
-          <ScrollReveal delay={100}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-              {featuredCategories.map((cat) => (
-                <Link
-                  to={`/shop?category=${cat.slug}`}
-                  key={cat.id}
-                  className="category-card group h-[450px] sm:h-[400px] lg:h-[500px]"
-                  onClick={() => toast.info(`Viewing ${cat.name} collection`)}
-                >
-                  <OptimizedImage
-                    src={cat.image_url || ''}
-                    alt={cat.name}
-                    width={800}
-                    className="w-full h-full object-cover group-hover:scale-110"
-                    enableZoom={true}
-                  />
-                  <div className="overlay group-hover:opacity-80" />
-                  <div className="label group-hover:-translate-y-2">
-                    <h3 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-light mb-2">
-                      {cat.name}
-                    </h3>
-                    <p className="text-xs font-body text-luxury-spacing text-primary-foreground/80">
-                      {cat.description || 'Explore Collection'} →
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </ScrollReveal>
-        )}
+        {/* 3D Coverflow Carousel */}
+        {!isLoading && activeCategories.length > 0 && (
+          <ScrollReveal delay={120} direction="tilt-up">
+            <div className="relative w-full h-[500px] sm:h-[600px] flex items-center justify-center perspective-[1200px]">
+              
+              {/* Cards */}
+              <div className="relative w-full max-w-[500px] h-full" style={{ transformStyle: 'preserve-3d' }}>
+                {activeCategories.map((cat, index) => {
+                  const isActive = index === activeIndex;
+                  const isPrev = index === (activeIndex - 1 + activeCategories.length) % activeCategories.length;
+                  const isNext = index === (activeIndex + 1) % activeCategories.length;
+                  
+                  let transform = 'translateX(0) scale(0) rotateY(0) translateZ(-400px)';
+                  let zIndex = 0;
+                  let opacity = 0;
+                  let filter = 'blur(10px) grayscale(50%)';
 
-        {/* Regular Categories - Small Cards (Scrollable if many) */}
-        {!isLoading && regularCategories.length > 0 && (
-          <ScrollReveal delay={200}>
-            <div className="relative group/slider">
-              {showLeftArrow && (
-                <button
-                  onClick={() => scroll('left')}
-                  className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm border border-border p-2 rounded-full shadow-lg text-foreground hover:bg-background hover:scale-110 transition-all opacity-0 group-hover/slider:opacity-100 hidden sm:flex items-center justify-center"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft size={24} />
-                </button>
-              )}
+                  if (isActive) {
+                    transform = 'translateX(0) scale(1) rotateY(0) translateZ(0)';
+                    zIndex = 10;
+                    opacity = 1;
+                    filter = 'blur(0px) grayscale(0%)';
+                  } else if (isPrev) {
+                    transform = 'translateX(-60%) scale(0.8) rotateY(25deg) translateZ(-150px)';
+                    zIndex = 5;
+                    opacity = 0.8;
+                    filter = 'blur(2px) grayscale(30%)';
+                  } else if (isNext) {
+                    transform = 'translateX(60%) scale(0.8) rotateY(-25deg) translateZ(-150px)';
+                    zIndex = 5;
+                    opacity = 0.8;
+                    filter = 'blur(2px) grayscale(30%)';
+                  } else {
+                    // Items further away
+                    const dist = index < activeIndex ? activeIndex - index : index - activeIndex;
+                    const dir = index < activeIndex ? -1 : 1;
+                    // Handle wrap-around math roughly
+                    const isFarPrev = index === (activeIndex - 2 + activeCategories.length) % activeCategories.length;
+                    const isFarNext = index === (activeIndex + 2) % activeCategories.length;
+                    
+                    if (isFarPrev) {
+                       transform = 'translateX(-100%) scale(0.6) rotateY(35deg) translateZ(-300px)';
+                       opacity = 0.3;
+                       filter = 'blur(5px) grayscale(60%)';
+                    } else if (isFarNext) {
+                       transform = 'translateX(100%) scale(0.6) rotateY(-35deg) translateZ(-300px)';
+                       opacity = 0.3;
+                       filter = 'blur(5px) grayscale(60%)';
+                    }
+                  }
 
-              <div
-                ref={scrollContainerRef}
-                onScroll={handleScroll}
-                className="flex gap-4 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent scroll-smooth"
-              >
-                {regularCategories.map((cat) => (
-                  <Link
-                    to={`/shop?category=${cat.slug}`}
-                    key={cat.id}
-                    className="category-card group h-[280px] sm:h-[220px] lg:h-[280px] w-[200px] sm:w-[250px] lg:w-[280px] flex-shrink-0 snap-start"
-                    onClick={() => toast.info(`Viewing ${cat.name} collection`)}
-                  >
-                    <OptimizedImage
-                      src={cat.image_url || ''}
-                      alt={cat.name}
-                      width={400}
-                      className="w-full h-full object-cover group-hover:scale-110"
-                      enableZoom={true}
-                    />
-                    <div className="overlay group-hover:opacity-80" />
-                    <div className="label p-4 group-hover:-translate-y-2">
-                      <h3 className="font-heading text-base sm:text-lg lg:text-xl font-light">
-                        {cat.name}
-                      </h3>
-                    </div>
-                  </Link>
-                ))}
+                  return (
+                    <Link
+                      to={`/shop?category=${cat.slug}`}
+                      key={cat.id}
+                      className="absolute inset-0 block rounded-3xl overflow-hidden cursor-pointer"
+                      onClick={(e) => handleCardClick(e, index, cat.name)}
+                      style={{
+                        transform,
+                        zIndex,
+                        opacity,
+                        filter,
+                        transition: 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), filter 0.8s ease',
+                        transformStyle: 'preserve-3d',
+                        boxShadow: isActive ? '0 30px 60px rgba(0,0,0,0.25)' : '0 10px 30px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      {cat.image_url
+                        ? <OptimizedImage src={cat.image_url} alt={cat.name} width={600} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-black/80" />
+                      }
+                      
+                      {/* Overlay */}
+                      <div 
+                        className="absolute inset-0 transition-opacity duration-800"
+                        style={{ 
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)',
+                          opacity: isActive ? 0.9 : 0.6 
+                        }} 
+                      />
+                      
+                      {/* Label */}
+                      <div 
+                        className="absolute bottom-0 left-0 right-0 p-8 text-center text-white transition-all duration-800"
+                        style={{
+                          transform: isActive ? 'translateY(0) translateZ(30px)' : 'translateY(20px) translateZ(0)',
+                          opacity: isActive ? 1 : 0.4
+                        }}
+                      >
+                        <h3 className="font-heading text-4xl lg:text-5xl font-light mb-3 tracking-wide uppercase">{cat.name}</h3>
+                        <div 
+                          className="flex items-center justify-center gap-3 text-white/80 text-sm uppercase tracking-[0.2em] font-body transition-opacity duration-800"
+                          style={{ opacity: isActive ? 1 : 0 }}
+                        >
+                          {cat.description || 'Explore Collection'}
+                          <ArrowRight size={16} />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
 
-              {showRightArrow && (
-                <button
-                  onClick={() => scroll('right')}
-                  className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm border border-border p-2 rounded-full shadow-lg text-foreground hover:bg-background hover:scale-110 transition-all opacity-0 group-hover/slider:opacity-100 hidden sm:flex items-center justify-center"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight size={24} />
-                </button>
-              )}
+              {/* Navigation Arrows */}
+              <button
+                onClick={prevSlide}
+                className="absolute left-4 lg:left-[10%] top-1/2 -translate-y-1/2 z-20 w-14 h-14 flex items-center justify-center rounded-full border-2 border-black/80 bg-white text-black shadow-xl hover:bg-black hover:text-white hover:scale-110 transition-all duration-300"
+                aria-label="Previous category"
+              >
+                <ArrowLeft size={24} strokeWidth={2} />
+              </button>
+
+              <button
+                onClick={nextSlide}
+                className="absolute right-4 lg:right-[10%] top-1/2 -translate-y-1/2 z-20 w-14 h-14 flex items-center justify-center rounded-full border-2 border-black/80 bg-white text-black shadow-xl hover:bg-black hover:text-white hover:scale-110 transition-all duration-300"
+                aria-label="Next category"
+              >
+                <ArrowRight size={24} strokeWidth={2} />
+              </button>
+
             </div>
           </ScrollReveal>
         )}
