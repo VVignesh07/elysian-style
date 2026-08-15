@@ -408,11 +408,39 @@ const Shop = ({ category, filterType = "all" }: ShopProps) => {
         }
     };
 
+    // Dynamic SEO generation based on the SEO Strategy Document
+    const activeCategoryName = categories.find(c => c.id === activeCategoryId)?.name || categorySlug || category || "";
+    let seoTitle = activeCategoryName || (filterType === "new" ? "New Arrivals" : (filterType === "sale" ? "Sale" : "Shop"));
+    let seoDesc = activeCategoryName ? `Explore our premium ${activeCategoryName} collection at Zero Fashion.` : "Browse our full range of premium apparel.";
+    
+    if (activeCategoryName) {
+        const catLower = activeCategoryName.toLowerCase();
+        if (catLower.includes('shirt') && catLower.includes('men')) {
+            seoTitle = "Men's Premium Cotton Formal Shirts | Slim Fit & Office Wear";
+            seoDesc = "Elevate your wardrobe with our premium cotton formal shirts for men. Featuring a tailored slim fit and elegant finish, perfect for office and festive occasions. Shop now with free shipping and COD across India.";
+        } else if (catLower === 'shirts' || catLower === 'casual shirts' || catLower === 'formal shirts') {
+             seoTitle = "Premium Men's Shirts | Formal & Casual Wear";
+             seoDesc = "Elevate your wardrobe with our premium cotton shirts for men. Featuring tailored fits and elegant finishes, perfect for office and festive occasions.";
+        } else if (catLower.includes('dress')) {
+            seoTitle = "Women's Elegant Dresses | Premium Party & Evening Wear";
+            seoDesc = "Discover elegant party wear and evening dresses crafted for the modern woman. Premium fabrics and timeless designs with zero compromises on style. Shop the luxury collection today.";
+        } else if (catLower.includes('kurta') || catLower.includes('ethnic')) {
+             seoTitle = "Premium Ethnic Wear & Linen Kurtas | Festive Collection";
+             seoDesc = "Shop premium linen kurtas and luxury ethnic wear for festive and wedding occasions. Experience elegant craftsmanship and timeless style. Browse the Zero Fashion ethnic collection now.";
+        } else if (catLower === 'men') {
+             seoTitle = "Men's Premium Apparel | Shirts, T-Shirts & Ethnic Wear";
+             seoDesc = "Discover premium men's fashion online in India. From elegant formal shirts to luxury casual wear and ethnic styles. Zero compromises on style.";
+        } else if (catLower === 'women') {
+             seoTitle = "Women's Premium Fashion | Dresses, Kurtis & Western Wear";
+             seoDesc = "Shop elegant women's fashion online. Premium dresses, designer kurtis, and stylish western wear crafted for the modern woman.";
+        }
+    }
+
     return (
         <div className="min-h-screen bg-[#FDFBF9]">
             <SEO
-                title={category || (filterType === "new" ? "New Arrivals" : (filterType === "sale" ? "Sale" : "Shop"))}
-                description={category ? `Explore our ${category} collection at Zero Fashion.` : "Browse our full range of premium apparel."}
+                title={seoTitle}
+                description={seoDesc}
             />
             <Navbar />
 

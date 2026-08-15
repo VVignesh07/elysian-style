@@ -28,7 +28,7 @@ const SEO = ({
     const metaUrl = url ? `${siteUrl}${url}` : window.location.href;
     const metaKeywords = keywords.length > 0
         ? keywords.join(', ')
-        : 'fashion, premium, clothing, men, women, luxury, style';
+        : 'premium fashion brand India, online clothing store India, designer wear online India, elegant clothing for men and women, luxury casual wear India, stylish apparel online, Zero Fashion online store, men\'s formal shirts, women\'s dresses online, women\'s kurtis, men\'s premium cotton oversized t-shirt, women\'s ethnic wear, buy premium fashion online India, best elegant clothing brand India, premium fashion Tamil Nadu, online clothing store Madurai';
 
     return (
         <Helmet>
