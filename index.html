@@ -52,14 +52,13 @@
       z-index: 9999;
     }
 
-    .loader-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2rem;
-      letter-spacing: 0.3em;
-      color: #1a1a1a;
-      margin-bottom: 1.5rem;
+    .loader-logo-img {
+      height: 4rem;
+      width: auto;
+      margin-bottom: 2rem;
       animation: pulse 2s infinite ease-in-out;
-      text-transform: uppercase;
+      filter: grayscale(100%) brightness(0);
+      object-fit: contain;
     }
 
     .loader-bar-container {
@@ -113,7 +112,7 @@
   <div id="root">
     <!-- Initial Splash Screen -->
     <div id="initial-loader">
-      <div class="loader-logo">ZERO FASHION</div>
+      <img src="/src/assets/zerofasions.in2.png" alt="Zero Fashion Logo" class="loader-logo-img" />
       <div class="loader-bar-container">
         <div class="loader-bar"></div>
       </div>

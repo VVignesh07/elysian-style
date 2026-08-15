@@ -12,6 +12,7 @@ import CartDrawer from "./components/CartDrawer";
 import { WishlistProvider } from "./contexts/WishlistContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
+import logo from "@/assets/zerofasions.in2.png";
 
 // Shop Pages
 import Index from "./pages/Index";
@@ -61,7 +62,18 @@ const queryClient = new QueryClient({
 
 const PageLoader = () => (
   <div className="h-screen w-full flex items-center justify-center bg-background">
-    <Loader2 className="w-10 h-10 animate-spin text-luxury-gold" />
+    <div className="relative flex flex-col items-center justify-center gap-6">
+      <img 
+        src={logo} 
+        alt="Loading..." 
+        className="h-16 md:h-20 w-auto object-contain animate-pulse filter grayscale brightness-0"
+      />
+      <div className="flex gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-black animate-bounce" style={{ animationDelay: '0ms' }} />
+        <div className="w-1.5 h-1.5 rounded-full bg-black animate-bounce" style={{ animationDelay: '150ms' }} />
+        <div className="w-1.5 h-1.5 rounded-full bg-black animate-bounce" style={{ animationDelay: '300ms' }} />
+      </div>
+    </div>
   </div>
 );
 
