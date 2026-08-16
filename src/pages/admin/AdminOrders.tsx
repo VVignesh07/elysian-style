@@ -314,7 +314,18 @@ ${order.shipping_address.postal_code}
 *Zero Fashion Team*`;
 
         const encodedMessage = encodeURIComponent(message);
-        const phone = order.phone ? order.phone.replace(/[^0-9]/g, '') : '';
+        let phone = order.phone ? order.phone.replace(/[^0-9]/g, '') : '';
+        
+        // Ensure India country code (91) is present if the number is exactly 10 digits long
+        if (phone.length === 10) {
+            phone = `91${phone}`;
+        }
+        
+        if (!phone) {
+            alert("Phone number is missing for this order.");
+            return;
+        }
+
         const url = `https://wa.me/${phone}?text=${encodedMessage}`;
         window.open(url, '_blank');
     };
@@ -506,6 +517,15 @@ ${order.shipping_address.postal_code}
                                             </td>
                                             <td className="px-8 py-6 text-right">
                                                 <div className="flex items-center justify-end gap-3">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-10 w-10 p-0 text-muted-foreground hover:text-[#25D366] hover:bg-[#25D366]/10 transition-all duration-300 rounded-full"
+                                                        onClick={() => handleWhatsAppConfirmation(order)}
+                                                        title="Send WhatsApp Confirmation"
+                                                    >
+                                                        <MessageCircle size={18} />
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
