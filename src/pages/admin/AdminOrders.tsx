@@ -316,13 +316,18 @@ ${order.shipping_address.postal_code}
         const encodedMessage = encodeURIComponent(message);
         let phone = order.phone ? order.phone.replace(/[^0-9]/g, '') : '';
         
+        // Remove leading zero if user entered 11 digits starting with 0 (e.g., 09876543210)
+        if (phone.length === 11 && phone.startsWith('0')) {
+            phone = phone.substring(1);
+        }
+
         // Ensure India country code (91) is present if the number is exactly 10 digits long
         if (phone.length === 10) {
             phone = `91${phone}`;
         }
         
-        if (!phone) {
-            alert("Phone number is missing for this order.");
+        if (!phone || phone.length < 10) {
+            alert("Valid Phone number is missing for this order (Needs at least 10 digits).");
             return;
         }
 
