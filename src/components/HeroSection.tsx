@@ -109,19 +109,98 @@ const HeroSection = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [navigate]);
 
-  /* ── Auto-slide ── */
+  /* ── Scroll Lock ── */
   const [isPaused, setIsPaused] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const inViewRef = useRef(false);
 
   useEffect(() => {
-    if (isPaused || displayItems.length <= 1) return;
-    const interval = setInterval(() => {
-      navigate("next");
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [navigate, isPaused, displayItems.length]);
+    const heroEl = heroRef.current;
+    if (!heroEl) return;
 
+    let accumulatedDelta = 0;
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inViewRef.current = entry.isIntersecting;
+      },
+      { threshold: 0.6 }
+    );
+    observer.observe(heroEl);
 
+    const relockObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) inViewRef.current = true;
+      },
+      { threshold: 0.9 }
+    );
+    relockObserver.observe(heroEl);
+
+    const handleWheel = (e: WheelEvent) => {
+      if (!inViewRef.current) return;
+
+      // Edge release logic
+      if (activeIndex === displayItems.length - 1 && e.deltaY > 0) return; // allow normal scroll down
+      if (activeIndex === 0 && e.deltaY < 0) return; // allow normal scroll up
+
+      e.preventDefault(); // lock page scroll
+
+      if (isAnimating) return;
+
+      accumulatedDelta += e.deltaY;
+      
+      if (Math.abs(accumulatedDelta) > 60) {
+        if (accumulatedDelta > 0) {
+          navigate("next");
+        } else {
+          navigate("prev");
+        }
+        accumulatedDelta = 0; // reset
+      }
+    };
+
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      if (!inViewRef.current) return;
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!inViewRef.current) return;
+
+      const touchMoveY = e.touches[0].clientY;
+      const delta = touchStartY - touchMoveY;
+
+      // Edge release logic
+      if (activeIndex === displayItems.length - 1 && delta > 0) return;
+      if (activeIndex === 0 && delta < 0) return;
+
+      e.preventDefault();
+
+      if (isAnimating) return;
+
+      if (Math.abs(delta) > 60) {
+        if (delta > 0) {
+          navigate("next");
+        } else {
+          navigate("prev");
+        }
+        touchStartY = touchMoveY;
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+    return () => {
+      observer.disconnect();
+      relockObserver.disconnect();
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [activeIndex, isAnimating, displayItems.length, navigate]);
 
   /* ── Roles ── */
   const getRoles = (): Record<number, Role> => {
@@ -149,6 +228,8 @@ const HeroSection = () => {
 
   /* ── Per-role styles ── */
   const getRoleStyle = (role: Role | undefined): React.CSSProperties => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const transition = [
       "transform",
       "filter",
@@ -166,12 +247,13 @@ const HeroSection = () => {
       transition,
       willChange: "transform, filter, opacity",
       transformOrigin: "bottom center",
+      WebkitBackfaceVisibility: "hidden", // smoother 3D
     };
 
     if (!role || role === "hidden") {
       return {
         ...base,
-        transform: "translateX(-50%) scale(0.5)",
+        transform: `translateX(-50%) ${prefersReducedMotion ? 'scale(0.5)' : 'translateZ(-500px) scale(0.5)'}`,
         opacity: 0,
         zIndex: -1,
         left: "50%",
@@ -185,7 +267,7 @@ const HeroSection = () => {
       case "center":
         return {
           ...base,
-          transform: `translateX(-50%) scale(1)`,
+          transform: `translateX(-50%) ${prefersReducedMotion ? 'scale(1)' : 'translateZ(0px) rotateY(0deg) scale(1)'}`,
           filter: "blur(0px)",
           opacity: 1,
           zIndex: 20,
@@ -196,7 +278,7 @@ const HeroSection = () => {
       case "left":
         return {
           ...base,
-          transform: "translateX(-50%) scale(1)",
+          transform: `translateX(-50%) ${prefersReducedMotion ? 'scale(0.92)' : 'translateZ(-180px) rotateY(18deg) scale(0.92)'}`,
           filter: "blur(2px)",
           opacity: 0.85,
           zIndex: 10,
@@ -207,7 +289,7 @@ const HeroSection = () => {
       case "right":
         return {
           ...base,
-          transform: "translateX(-50%) scale(1)",
+          transform: `translateX(-50%) ${prefersReducedMotion ? 'scale(0.92)' : 'translateZ(-180px) rotateY(-18deg) scale(0.92)'}`,
           filter: "blur(2px)",
           opacity: 0.85,
           zIndex: 10,
@@ -218,7 +300,7 @@ const HeroSection = () => {
       case "back":
         return {
           ...base,
-          transform: "translateX(-50%) scale(1)",
+          transform: `translateX(-50%) ${prefersReducedMotion ? 'scale(0.85)' : 'translateZ(-320px) scale(0.85)'}`,
           filter: "blur(4px)",
           opacity: 1,
           zIndex: 5,
@@ -253,7 +335,7 @@ const HeroSection = () => {
     >
       <div
         className="relative w-full"
-        style={{ height: "100vh", overflow: "hidden", paddingTop: "80px" }}
+        style={{ height: "100vh", overflow: "hidden", paddingTop: "80px", perspective: "1600px" }}
       >
         {/* ── 1. Grain overlay ── */}
         <div
