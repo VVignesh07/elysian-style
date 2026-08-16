@@ -91,7 +91,6 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
     };
     // @ts-ignore
     addToCart(cartProduct);
-    toast.success(`${product.name} added to cart!`);
   };
 
   const toggleWishlist = (e: React.MouseEvent) => {

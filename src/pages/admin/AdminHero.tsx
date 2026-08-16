@@ -117,6 +117,7 @@ const AdminHero = () => {
         subtitle: "",
         cta_text: "Shop Now",
         cta_link: "/collections",
+        bg_color: "#F4845F",
         is_active: true,
         display_order: 0,
         layout_type: "split" as "split" | "full"
@@ -147,6 +148,7 @@ const AdminHero = () => {
             subtitle: "Premium fashion for every occasion.",
             cta_text: "Shop Now",
             cta_link: "/collections",
+            bg_color: "#F4845F",
             is_active: true,
             display_order: slides.length,
             layout_type: "split"
@@ -163,6 +165,7 @@ const AdminHero = () => {
             subtitle: slide.subtitle || "",
             cta_text: slide.cta_text || "",
             cta_link: slide.cta_link || "",
+            bg_color: slide.bg_color || "#F4845F",
             is_active: slide.is_active,
             display_order: slide.display_order,
             layout_type: slide.layout_type || "split"
@@ -183,6 +186,7 @@ const AdminHero = () => {
                 subtitle: formData.subtitle,
                 cta_text: formData.cta_text,
                 cta_link: formData.cta_link,
+                bg_color: formData.bg_color,
                 is_active: formData.is_active,
                 display_order: formData.display_order,
                 layout_type: formData.layout_type
@@ -381,7 +385,7 @@ const AdminHero = () => {
 
             {/* Add/Edit Slide Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-5xl overflow-y-auto max-h-[95vh] rounded-3xl border-none shadow-2xl p-0 overflow-hidden bg-white">
+                <DialogContent className="max-w-5xl overflow-y-auto max-h-[95vh] rounded-3xl border-none shadow-2xl p-0 bg-white">
                     <DialogHeader>
                         <div className="bg-[#f9f7f2] p-8 border-b border-luxury-gold/10 relative overflow-hidden">
                             <StarDoodle className="absolute -top-4 -left-4 w-12 h-12 text-doodle-yellow opacity-40 rotate-12" />
@@ -507,6 +511,42 @@ const AdminHero = () => {
                                             </div>
                                             <span className={`text-[10px] font-bold uppercase tracking-widest ${formData.layout_type === 'full' ? 'text-[#332D2D]' : 'text-muted-foreground'}`}>Full-Size</span>
                                         </button>
+                                    </div>
+                                </div>
+
+                                {/* Background Color Picker */}
+                                <div className="space-y-3">
+                                    <Label className="text-xs font-bold text-luxury-gold uppercase tracking-[0.2em]">Background Color</Label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative">
+                                            <input
+                                                type="color"
+                                                value={formData.bg_color}
+                                                onChange={(e) => setFormData({ ...formData, bg_color: e.target.value })}
+                                                className="w-12 h-12 rounded-xl border-2 border-[#E8E1D9] cursor-pointer appearance-none bg-transparent p-0.5"
+                                                style={{ WebkitAppearance: 'none' }}
+                                            />
+                                        </div>
+                                        <div className="flex-1 space-y-2">
+                                            <Input
+                                                value={formData.bg_color}
+                                                onChange={(e) => setFormData({ ...formData, bg_color: e.target.value })}
+                                                placeholder="#F4845F"
+                                                className="border-[#E8E1D9] rounded-lg h-10 font-mono text-sm uppercase"
+                                            />
+                                            <div className="flex gap-2">
+                                                {['#F4845F', '#6BBF7A', '#E882B4', '#6EB5FF', '#A982E8', '#0a0a0a', '#1a1a2e', '#2d3436'].map(color => (
+                                                    <button
+                                                        key={color}
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, bg_color: color })}
+                                                        className={`w-7 h-7 rounded-lg border-2 transition-all hover:scale-110 ${formData.bg_color === color ? 'border-luxury-gold ring-2 ring-luxury-gold/20 scale-110' : 'border-white/50'}`}
+                                                        style={{ backgroundColor: color }}
+                                                        title={color}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

@@ -13,6 +13,7 @@ export interface HeroSlide {
     subtitle: string | null;
     cta_text: string | null;
     cta_link: string | null;
+    bg_color: string | null;
     is_active: boolean;
     display_order: number;
     layout_type: 'split' | 'full';
@@ -26,6 +27,7 @@ export interface CreateHeroSlideInput {
     subtitle?: string;
     cta_text?: string;
     cta_link?: string;
+    bg_color?: string;
     is_active?: boolean;
     display_order?: number;
     layout_type?: 'split' | 'full';
@@ -81,6 +83,7 @@ export function useCreateHeroSlide(supabaseClient: SupabaseClient<Database> = de
                     subtitle: input.subtitle || null,
                     cta_text: input.cta_text || 'Shop Now',
                     cta_link: input.cta_link || '/collections',
+                    bg_color: input.bg_color || null,
                     is_active: input.is_active !== undefined ? input.is_active : true,
                     display_order: input.display_order || 0,
                     layout_type: input.layout_type || 'split',

@@ -42,7 +42,7 @@ const HeroSection = () => {
     ? activeSlides.map((slide, i) => ({
         id: slide.id,
         src: slide.image_url,
-        bg: BG_COLORS[i % BG_COLORS.length],
+        bg: slide.bg_color || BG_COLORS[i % BG_COLORS.length],
         title: slide.title || "ZERO FASHION",
         subtitle: slide.subtitle || "Premium fashion for every occasion.",
         cta_text: slide.cta_text || "DISCOVER IT",
@@ -108,6 +108,20 @@ const HeroSection = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [navigate]);
+
+  /* ── Auto-slide ── */
+  const [isPaused, setIsPaused] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isPaused || displayItems.length <= 1) return;
+    const interval = setInterval(() => {
+      navigate("next");
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [navigate, isPaused, displayItems.length]);
+
+
 
   /* ── Roles ── */
   const getRoles = (): Record<number, Role> => {
@@ -227,12 +241,15 @@ const HeroSection = () => {
 
   return (
     <div
+      ref={heroRef}
       style={{
         backgroundColor: currentItem.bg,
         transition: `background-color ${TRANSITION_MS}ms ${EASING}`,
         fontFamily: "Inter, sans-serif",
       }}
       className="relative w-full overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
     >
       <div
         className="relative w-full"

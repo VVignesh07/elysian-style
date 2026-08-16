@@ -384,7 +384,6 @@ const Shop = ({ category, filterType = "all" }: ShopProps) => {
 
         // @ts-ignore - Compatibility shim
         addToCart(cartProduct);
-        toast.success(`${product.name} added to cart!`);
     };
 
     const toggleWishlist = (e: React.MouseEvent, product: DBProduct) => {

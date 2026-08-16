@@ -238,7 +238,6 @@ const ProductDetails = () => {
 
         // @ts-ignore
         addToCart(uiProduct, quantity, selectedSize || undefined, selectedColor || undefined);
-        toast.success(`${product.name} added to cart!`);
     };
 
     const handleBuyNow = () => {
