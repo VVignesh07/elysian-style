@@ -292,31 +292,26 @@ const AdminOrders = () => {
     };
 
     const handleWhatsAppConfirmation = (order: OrderDB) => {
-        const itemsList = order.order_items?.map((item) => {
-            return `▫️ *${item.product_name}* \n    Size: ${item.selected_size || 'N/A'} | Color: ${item.selected_color || 'N/A'} | Qty: ${item.quantity}`;
-        }).join('\n\n');
+        const itemsList = order.order_items?.map(item =>
+            `- ${item.product_name} (${item.selected_size || 'N/A'}, ${item.selected_color || 'N/A'}) x${item.quantity}`
+        ).join('\n');
 
-        const message = `https://i.ibb.co/3s6k1p2/z-logo.png
-✨ 𝒁𝑬𝑹𝑶 𝑭𝑨𝑺𝑯𝑰𝑶𝑵 ✨
-*Order Successfully Confirmed!* 🤍
+        const message = `*Order Confirmation - Zero Fashion* 
 \nDear ${order.customer_name},
-Thank you for choosing Zero Fashion! Your order is being prepared with love and care. 🕊️
-\n〰〰〰〰〰〰〰〰〰〰〰
-\n🧾 *ORDER HIGHLIGHTS*
-▪️ *Order No:* #${order.order_number}
-▪️ *Date:* ${format(new Date(order.created_at), 'MMM dd, yyyy')}
-▪️ *Total:* ₹${order.total_amount.toLocaleString('en-IN')}
-\n🛍️ *YOUR BAG*
+\nThank you for your recent purchase! We are pleased to confirm your order.
+\n*Order ID:* #${order.order_number}
+*Date:* ${format(new Date(order.created_at), 'MMM dd, yyyy')}
+*Total Amount:* ₹${order.total_amount.toLocaleString('en-IN')}
+\n*Items Ordered:*
 ${itemsList}
-\n📍 *DELIVERING TO*
+\n*Shipping Address:*
 ${order.shipping_address.street}
 ${order.shipping_address.city}, ${order.shipping_address.state}
 ${order.shipping_address.postal_code}
-\n〰〰〰〰〰〰〰〰〰〰〰
-\n🚚 We will notify you with the tracking details the moment your package leaves our warehouse!
-\n💬 Need assistance? We're just a message away.
-\nWith gratitude,
-*Zero Fashion Team* 🖤`;
+\nWe will update you with tracking details as soon as your package is dispatched.
+\nFor any queries, feel free to reply to this message.
+\nWarm regards,
+*Zero Fashion Team*`;
 
         const encodedMessage = encodeURIComponent(message);
         let phone = order.phone ? order.phone.replace(/[^0-9]/g, '') : '';
