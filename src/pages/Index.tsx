@@ -14,7 +14,6 @@ const Testimonials = React.lazy(() => import("@/components/Testimonials"));
 const FeatureHighlights = React.lazy(() => import("@/components/FeatureHighlights"));
 const InstagramReelsSection = React.lazy(() => import("@/components/InstagramReelsSection"));
 const PromotionalBanner = React.lazy(() => import("@/components/PromotionalBanner"));
-const VideoShowcase = React.lazy(() => import("@/components/VideoShowcase"));
 const Newsletter = React.lazy(() => import("@/components/Newsletter"));
 
 const SectionLoader = () => (
